@@ -1,0 +1,18 @@
+# node
+node_modules/
+npm-debug.log*
+
+# react native
+.expo/
+android/.gradle/
+android/build/
+android/app/build/
+ios/build/
+ios/Pods/
+ios/.xcode.env.local
+
+# env
+.env
+
+# mac
+.DS_Store
