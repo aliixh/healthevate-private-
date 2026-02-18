@@ -1,10 +1,12 @@
 // https://colorhunt.co/palette/fff1caffb823708a582d4f2b
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import dayjs from "dayjs";
 import Checkbox from "expo-checkbox";
-import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { AppState, StyleSheet, Text, View, type AppStateStatus } from "react-native";
 
-const undo = true;
+const LAST_RESET_KEY = "lastResetDate";
 
 const habits = {
   one: { name: "Write in Journal", coin: 20, difficulty: "hard" },
@@ -12,7 +14,23 @@ const habits = {
   three: { name: "10 mins of reading", coin: 10, difficulty: "easy" },
 };
 
+AppState.addEventListener("change", (state) => {
+  if (state === "active") ensureDailyReset();
+});
+
 export default function Index() {
+  ensureDailyReset();
+
+  useEffect(() => {
+    ensureDailyReset();
+
+    let sub = AppState.addEventListener("change", (state: AppStateStatus) => {
+      if (state === "active") ensureDailyReset();
+    });
+
+    return () => sub.remove();
+  }, []);
+
   const [user, setUser] = useState({
     name: "Lucy Lee",
     coin: 10000,
@@ -61,6 +79,49 @@ export default function Index() {
       </View>
     </View>
   );
+}
+
+async function ensureDailyReset() {
+  try {
+    let today = todayKey();
+    let last = await getData(LAST_RESET_KEY);
+
+    if (last === null) {
+      await storeData(LAST_RESET_KEY, today);
+      return;
+    }
+
+    if (last !== today) {
+      resetHabit();
+      updateStreak();
+      await storeData(LAST_RESET_KEY, today);
+    }
+  } catch (err) {
+    handleError(err);
+  }
+}
+
+function resetHabit() {
+  // TODO
+}
+function updateStreak() {
+  // TODO
+}
+
+function todayKey() {
+  return dayjs().format("YYYY-MM-DD");
+}
+
+async function storeData(key: string, value: string) {
+  await AsyncStorage.setItem(key, value);
+};
+
+async function getData(key: string) {
+  return await AsyncStorage.getItem(key);
+};
+
+function handleError(err) {
+  // TO DO
 }
 
 const styles = StyleSheet.create({
