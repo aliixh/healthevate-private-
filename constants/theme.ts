@@ -11,12 +11,12 @@ import { StyleSheet } from 'react-native';
 export const Colors = {
   // Core palette
   background:      '#F3D3B5', // main app background (warm tan)
-  textbox:         '#E5BD99', // darker tan for input fields / cards
+  textbox:         '#E5BD99', // darker tan for input fields
   purple:          '#916FD0', // highlight / primary accent
-  greenOutline:    '#2D603D', // borders, outlines, success
+  greenOutline:    '#2D603D', // borders, outlines
   greenButton:     '#2D603D', // solid green button fill
-  orange:          '#CE6832', // dark orange accent / CTAs
-  yellowCoin:      '#F9C983', // coin / reward color
+  orange:          '#CE6832', // dark orange accent / basic buttons
+  yellowCoin:      '#F9C983', // coin / streak color
   offWhite:        '#FFFAF1', // light surfaces, modals
 
   // Greys
@@ -351,7 +351,7 @@ export const ButtonStyles = StyleSheet.create({
     borderBottomRightRadius: Radius.md,
     zIndex: 0,
   },
-  // CSS triangle chevron — render as a plain View, no children needed
+  // CSS triangle chevron — render as a plain View
   dropdownChevron: {
     width: 0,
     height: 0,
