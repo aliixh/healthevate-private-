@@ -1,14 +1,16 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Modal,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
+    Alert
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import dayjs from 'dayjs';
 
 export default function ProfileScreen() {
   const [name, setName] = useState("Julius Ceaser");
@@ -17,6 +19,9 @@ export default function ProfileScreen() {
   const [streak, setStreak] = useState(3);
   const [modalVisible, setModalVisible] = useState(false);
   const [tempName, setTempName] = useState("");
+  const [resetSeconds, setResetSeconds] = useState("10");
+  const [timeRemaining, setTimeRemaining] = useState(0);
+  const [lastResetTime, setLastResetTime] = useState(null);
   
   // Track which days user logged in (true = logged in, false = didn't log in)
   const [streakDays, setStreakDays] = useState([
@@ -61,6 +66,56 @@ export default function ProfileScreen() {
     setName(tempName);
     closeModal();
   };
+
+  const startResetTimer = async () => {
+    const seconds = parseInt(resetSeconds);
+    if (isNaN(seconds) || seconds <= 0) {
+      Alert.alert("Invalid Input", "Please enter a valid number of seconds");
+      return;
+    }
+    
+    const resetTime = dayjs().add(seconds, 'second').toISOString();
+    await AsyncStorage.setItem("streakResetTime", resetTime);
+    setLastResetTime(resetTime);
+    Alert.alert("Timer Started", `Streak will reset in ${seconds} seconds`);
+  };
+
+  const resetStreak = async () => {
+    const newStreakDays = [false, false, false, false, false, false, false];
+    setStreakDays(newStreakDays);
+    setStreak(0);
+    await AsyncStorage.removeItem("streakResetTime");
+    setLastResetTime(null);
+    Alert.alert("Streak Reset", "Your streak has been reset to 0");
+  };
+
+  useEffect(() => {
+    const loadResetTime = async () => {
+      const savedResetTime = await AsyncStorage.getItem("streakResetTime");
+      if (savedResetTime) {
+        setLastResetTime(savedResetTime);
+      }
+    };
+    loadResetTime();
+  }, []);
+
+  useEffect(() => {
+    if (!lastResetTime) return;
+
+    const interval = setInterval(() => {
+      const now = dayjs();
+      const resetTime = dayjs(lastResetTime);
+      const diff = resetTime.diff(now, 'second');
+
+      if (diff <= 0) {
+        resetStreak();
+      } else {
+        setTimeRemaining(diff);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [lastResetTime]);
 
   const saveProfile = async () => {
     try {
@@ -152,6 +207,27 @@ export default function ProfileScreen() {
                 />
               ))}
             </View>
+          </View>
+
+          {/* Reset Timer */}
+          <View style={styles.timerContainer}>
+            <Text style={styles.timerLabel}>Reset Timer (seconds):</Text>
+            <TextInput
+              style={styles.timerInput}
+              value={resetSeconds}
+              onChangeText={setResetSeconds}
+              keyboardType="numeric"
+              placeholder="10"
+              placeholderTextColor="#ffffff80"
+            />
+            <TouchableOpacity style={styles.startButton} onPress={startResetTimer}>
+              <Text style={styles.buttonText}>Start Timer</Text>
+            </TouchableOpacity>
+            {timeRemaining > 0 && (
+              <Text style={styles.countdownText}>
+                Resetting in: {timeRemaining}s
+              </Text>
+            )}
           </View>
         </View>
 
@@ -366,5 +442,37 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 18,
     fontWeight: "600",
+  },
+  timerContainer: {
+    marginTop: 30,
+  },
+  timerLabel: {
+    fontSize: 24,
+    color: "#ffffff",
+    marginBottom: 10,
+    fontFamily: "serif",
+  },
+  timerInput: {
+    borderWidth: 2,
+    borderColor: "#ffffff",
+    borderRadius: 10,
+    padding: 10,
+    fontSize: 24,
+    color: "#ffffff",
+    marginBottom: 15,
+    maxWidth: 200,
+  },
+  startButton: {
+    backgroundColor: "#5fa88f",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    maxWidth: 200,
+  },
+  countdownText: {
+    fontSize: 20,
+    color: "#ff8c42",
+    marginTop: 15,
+    fontWeight: "bold",
   }
 });
