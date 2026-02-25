@@ -178,9 +178,8 @@ Placeholder slots for app icons. Replace `null` with your asset path when ready.
 ```ts
 coin:   null, // → require('../assets/icons/coin.png')
 xp:     null, // → require('../assets/icons/xp.png')
-star:   null,
-heart:  null,
 streak: null,
-badge:  null,
-avatar: null,
+gift:  null,
+indrani: null,
+indra: null
 ```
