@@ -49,6 +49,7 @@ export const FontFamily = {
     pixelBold:       'PixelifySans_700Bold',
     handwriting:     'Gluten_400Regular',
     handwritingBold: 'Gluten_700Bold',
+    novaCut:         'NovaCut_400Regular',
 };
 
 export const FontSize = {
