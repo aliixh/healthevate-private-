@@ -17,6 +17,13 @@ export default function TabLayout() {
         tabBarButton: HapticTab,
       }}>
       <Tabs.Screen
+        name="loading"
+        options={{
+          title: 'Loading',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="hourglass" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="habit_update"
         options={{
           title: 'Habits',
