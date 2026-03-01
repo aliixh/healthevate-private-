@@ -19,8 +19,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="loading"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'Loading',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="hourglass" color={color} />,
         }}
       />
       <Tabs.Screen
