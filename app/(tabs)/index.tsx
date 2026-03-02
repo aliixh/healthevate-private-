@@ -1,146 +1,165 @@
-import React from 'react';
-import { StyleSheet, Text, View, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFonts, PixelifySans_400Regular, PixelifySans_700Bold } from '@expo-google-fonts/pixelify-sans';
+import { ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { Colors, FontFamily } from '@/constants/theme';
 
-export default function GameInfoScreen() {
+export default function BestPracticesScreen() {
+  const [fontsLoaded] = useFonts({ PixelifySans_400Regular, PixelifySans_700Bold });
+  if (!fontsLoaded) return null;
+
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Meditation circles - 5 centered hollow rings */}
-        <View style={[styles.circle, {width: 600, height: 600, left: '50%', top: '50%', marginLeft: -300, marginTop: -300}]} />
-        <View style={[styles.circle, {width: 450, height: 450, left: '50%', top: '50%', marginLeft: -225, marginTop: -225}]} />
-        <View style={[styles.circle, {width: 300, height: 300, left: '50%', top: '50%', marginLeft: -150, marginTop: -150}]} />
-        <View style={[styles.circle, {width: 180, height: 180, left: '50%', top: '50%', marginLeft: -90, marginTop: -90}]} />
-        <View style={[styles.circle, {width: 80, height: 80, left: '50%', top: '50%', marginLeft: -40, marginTop: -40}]} />
-        
-        {/* Scattered nature decorations */}
-        <Text style={[styles.leafEmoji, {position: 'absolute', left: 15, top: 80}]}>🍃</Text>
-        <Text style={[styles.leafEmoji, {position: 'absolute', right: 20, top: 120}]}>🌿</Text>
-        <Text style={[styles.leafEmoji, {position: 'absolute', left: 30, top: 200}]}>🌱</Text>
-        <Text style={[styles.leafEmoji, {position: 'absolute', right: 15, top: 280}]}>🍂</Text>
-        <Text style={[styles.leafEmoji, {position: 'absolute', left: 10, top: 350}]}>🌾</Text>
-        <Text style={[styles.leafEmoji, {position: 'absolute', right: 25, top: 420}]}>🍃</Text>
-        <Text style={[styles.leafEmoji, {position: 'absolute', left: 20, top: 500}]}>🌿</Text>
-        <Text style={[styles.leafEmoji, {position: 'absolute', right: 10, top: 580}]}>🌱</Text>
-        <Text style={[styles.leafEmoji, {position: 'absolute', left: 35, top: 650}]}>🍂</Text>
-        <Text style={[styles.leafEmoji, {position: 'absolute', right: 30, top: 700}]}>🌾</Text>
+    <View style={styles.container}>
+      {/* Left border line */}
+      <View style={styles.borderLine} />
+      {/* Left dashed line */}
+      <View style={styles.dashedLineContainer}>
+        {Array.from({ length: 15 }).map((_, i) => (
+          <View key={i} style={styles.dash} />
+        ))}
+      </View>
 
-        {/* Main content */}
-        <View style={styles.contentContainer}>
-          <View style={styles.titleContainer}>
-            <Text style={styles.title}>Game Information</Text>
-            <View style={styles.underline} />
-          </View>
-          
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Overview:</Text>
-            <Text style={styles.sectionText}>
-              Healthevate is a mobile game that blends habit tracking with an integrated story element. Players complete real-world daily activities that carry over into the game, earning rewards that unlock new story paths and customization options. By linking healthy habits to in-game progress, the game motivates players to stay engaged while working toward improved mental and physical wellbeing.
-            </Text>
-          </View>
+      {/* Back button */}
+      <View style={styles.backButtonWrapper}>
+        <View style={styles.backButtonShadow} />
+        <TouchableOpacity style={styles.backButton}>
+          <Text style={styles.backText}>{'<'}</Text>
+        </TouchableOpacity>
+      </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Purpose:</Text>
-            <Text style={styles.sectionText}>
-              The purpose of this game is to support players in improving their mental health and wellbeing by encouraging the development of healthy habits through structured gameplay.
-            </Text>
-          </View>
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.content}>
+        <Text style={styles.title}>Best Practices</Text>
+        <View style={styles.underline} />
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Best Practices:</Text>
-            <Text style={styles.bulletPoint}>
-              • <Text style={styles.boldText}>Set realistic goals:</Text> Start with small, achievable daily habits and gradually build up.
-            </Text>
-            <Text style={styles.bulletPoint}>
-              • <Text style={styles.boldText}>Be consistent:</Text> Regular participation helps reinforce healthy routines and unlocks more in-game rewards.
-            </Text>
-            <Text style={styles.bulletPoint}>
-              • <Text style={styles.boldText}>Track your progress:</Text> Use the game to monitor your activities and reflect on your growth.
-            </Text>
-            <Text style={styles.bulletPoint}>
-              • <Text style={styles.boldText}>Engage with the story:</Text> Exploring story paths can make habit-building more motivating.
-            </Text>
-          </View>
+        <View style={styles.section}>
+          <Text style={styles.label}>Set realistic goals:</Text>
+          <Text style={styles.text}>
+            Start with small, achievable daily habits and gradually build up.
+          </Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.label}>Be consistent:</Text>
+          <Text style={styles.text}>
+            Regular participation helps reinforce healthy routines and unlocks more in-game rewards.
+          </Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.label}>Track your progress:</Text>
+          <Text style={styles.text}>
+            Use the game to monitor your activities and reflect on your growth.
+          </Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.label}>Engage with the story:</Text>
+          <Text style={styles.text}>
+            Exploring story paths can make habit-building more motivating.
+          </Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+
+      {/* Right dashed line */}
+      <View style={styles.dashedLineContainer}>
+        {Array.from({ length: 15 }).map((_, i) => (
+          <View key={i} style={styles.dash} />
+        ))}
+      </View>
+      {/* Right border line */}
+      <View style={styles.borderLine} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f2d1f', // Darker forest background
+    backgroundColor: Colors.background,
+    flexDirection: 'row',
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingVertical: 20,
+  borderLine: {
+    width: 3,
+    backgroundColor: Colors.orange,
+    alignSelf: 'stretch',
+    marginLeft: 8,
+    marginRight: 8,
   },
-  leafEmoji: {
-    fontSize: 28,
-    opacity: 0.12,
-    transform: [{ rotate: '25deg' }],
-    zIndex: 0,
+  dashedLineContainer: {
+    width: 2,
+    alignSelf: 'stretch',
+    marginLeft: 8,
+    marginRight: 8,
+    justifyContent: 'space-evenly',
   },
-  circle: {
+  dash: {
+    width: 2,
+    height: 15,
+    backgroundColor: Colors.orange,
+  },
+  backButtonWrapper: {
     position: 'absolute',
-    borderRadius: 1000,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.04)',
-    backgroundColor: 'transparent',
-    zIndex: 0,
+    top: 20,
+    left: 40,
+    zIndex: 10,
   },
-  contentContainer: {
-    flex: 1,
-    paddingHorizontal: 40,
-    paddingVertical: 20,
+  backButtonShadow: {
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    width: 50,
+    height: 50,
+    backgroundColor: Colors.darkGrey,
+    borderRadius: 8,
+  },
+  backButton: {
+    backgroundColor: '#B85A28',
+    width: 50,
+    height: 50,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  titleContainer: {
+  backText: {
+    fontFamily: FontFamily.pixel,
+    fontSize: 28,
+    color: Colors.offWhite,
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  content: {
+    padding: 50,
+    paddingTop: 100,
     alignItems: 'center',
-    marginBottom: 30,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#e8f5e8',
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-  },
-  underline: {
-    width: 200,
-    height: 2,
-    backgroundColor: '#a8d8a8',
-    marginTop: 8,
-  },
-  section: {
-    marginBottom: 25,
-    width: '100%',
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#a8d8a8',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  sectionText: {
-    fontSize: 16,
-    color: '#00ffff',
-    lineHeight: 24,
-    textAlign: 'center',
-  },
-  bulletPoint: {
-    fontSize: 16,
-    color: '#00ffff',
-    lineHeight: 24,
+    fontFamily: FontFamily.pixel,
+    fontSize: 48,
+    color: Colors.greenOutline,
     marginBottom: 8,
     textAlign: 'center',
   },
-  boldText: {
-    fontWeight: 'bold',
+  underline: {
+    width: 320,
+    height: 3,
+    backgroundColor: Colors.greenOutline,
+    marginBottom: 40,
+  },
+  section: {
+    marginBottom: 30,
+    alignItems: 'center',
+  },
+  label: {
+    fontFamily: FontFamily.pixelBold,
+    fontSize: 24,
+    color: Colors.greenOutline,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  text: {
+    fontFamily: FontFamily.pixel,
+    fontSize: 18,
+    color: Colors.textDark,
+    lineHeight: 26,
+    textAlign: 'center',
   },
 });

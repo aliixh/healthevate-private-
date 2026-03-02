@@ -3,8 +3,7 @@ import React from 'react';
 import { StyleSheet, Text, View, Image } from 'react-native';
 import ProgressBar from 'react-native-progress/Bar';
 import { Stack } from 'expo-router';
-import { Colors, FontFamily, FontSize, Spacing, Radius,
-         ButtonStyles, PopupStyles, ComponentStyles } from '@/constants/theme';
+import { Colors, FontFamily } from '@/constants/theme';
 
 export default function HomeScreen() {
   const [fontsLoaded] = useFonts({ NovaCut_400Regular });
@@ -82,7 +81,7 @@ const styles = StyleSheet.create({
   borderLine: {
     width: 3,
     backgroundColor: Colors.orange,
-    alignSelf: 'stretch', // ← makes it fill full height
+    alignSelf: 'stretch',
     marginLeft: 8,
     marginRight: 8,
   },
@@ -107,7 +106,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.novaCut,
     fontSize: 92,
     color: Colors.greenOutline,
-    letterSpacing: 4, // slighly spaced to match figma styling
+    letterSpacing: 4,
   },
   progressBar: {
   },
