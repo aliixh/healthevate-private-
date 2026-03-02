@@ -19,8 +19,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="loading"
         options={{
-          title: 'Loading',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="hourglass" color={color} />,
+          title: 'Home',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -33,7 +33,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Game Info',
+          title: 'Best Practices',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="info.circle.fill" color={color} />,
         }}
       />
