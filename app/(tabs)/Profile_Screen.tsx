@@ -270,6 +270,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+    cursor: 'pointer',
   },
   backText: {
     fontFamily: FontFamily.pixel,
@@ -385,6 +386,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 50,
+    cursor: 'pointer',
   },
   editButtonText: {
     fontFamily: FontFamily.pixel,
@@ -476,6 +478,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     minWidth: 130,
+    cursor: 'pointer',
   },
   modalButtonText: {
     fontFamily: FontFamily.pixel,

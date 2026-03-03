@@ -1,0 +1,21 @@
+/* Global hover effects for buttons */
+button:hover,
+[role="button"]:hover {
+  opacity: 0.85;
+  transition: all 0.2s ease;
+}
+
+/* Specific button hover colors */
+.backButton:hover {
+  background-color: #9A4A20 !important;
+}
+
+.leftArrow:hover,
+.rightArrow:hover {
+  background-color: #B8B8B8 !important;
+}
+
+.editButton:hover,
+.modalButton:hover {
+  background-color: #245A2F !important;
+}

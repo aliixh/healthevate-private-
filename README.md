@@ -16,6 +16,10 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npx expo start
    ```
 
+   After running the command, press `w` to open in web browser, or scan the QR code with Expo Go app on your mobile device.
+
+   Web access: Once started, the app will be available at `http://localhost:8081` in your browser.
+
 In the output, you'll find options to open the app in a
 
 - [development build](https://docs.expo.dev/develop/development-builds/introduction/)
