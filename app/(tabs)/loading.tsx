@@ -1,18 +1,21 @@
 import { useFonts, NovaCut_400Regular } from '@expo-google-fonts/nova-cut';
 import React from 'react';
 import { StyleSheet, Text, View, Image } from 'react-native';
-import ProgressBar from 'react-native-progress/Bar';
+import * as Progress from 'react-native-progress';
 import { Stack } from 'expo-router';
 import { Colors, FontFamily } from '@/constants/theme';
 
 export default function HomeScreen() {
   const [fontsLoaded] = useFonts({ NovaCut_400Regular });
-
   const [progress, setProgress] = React.useState(0);
+
   React.useEffect(() => {
     const interval = setInterval(() => {
       setProgress(prev => {
-        if (prev >= 1) { clearInterval(interval); return 1; }
+        if (prev >= 1) {
+          clearInterval(interval);
+          return 1;
+        }
         return prev + 0.01;
       });
     }, 30);
@@ -41,7 +44,7 @@ export default function HomeScreen() {
         {/* Main content */}
         <View style={styles.content}>
             <Text style={styles.title}>healthevate</Text>
-            <ProgressBar
+            <Progress.Bar
                 progress={progress}
                 width={650}
                 color={Colors.greenOutline}
