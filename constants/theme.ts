@@ -148,7 +148,7 @@ export const ButtonStyles = StyleSheet.create({
   },
   nextText: {
     fontFamily: FontFamily.pixel,
-    fontSize: FontSize.md,
+    fontSize: FontSize.lg,
     color: Colors.offWhite,
   },
 
