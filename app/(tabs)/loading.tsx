@@ -1,25 +1,36 @@
-import { useFonts, NovaCut_400Regular } from '@expo-google-fonts/nova-cut';
 import React from 'react';
 import { StyleSheet, Text, View, Image } from 'react-native';
-import ProgressBar from 'react-native-progress/Bar';
-import { Stack } from 'expo-router';
+import * as Progress from 'react-native-progress';
+import { Stack, useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors, FontFamily } from '@/constants/theme';
 
-export default function HomeScreen() {
-  const [fontsLoaded] = useFonts({ NovaCut_400Regular });
-
+export default function LoadingScreen() {
   const [progress, setProgress] = React.useState(0);
+  const [destination, setDestination] = React.useState<string | null>(null);
+  const router = useRouter();
+
+  React.useEffect(() => {
+    async function checkOnboarding() {
+      const value = await AsyncStorage.getItem('hasCompletedOnboarding');
+      setDestination(value === 'true' ? '/(tabs)/habit_update' : '/onboarding/habitIntro');
+    }
+    checkOnboarding();
+  }, []);
+
   React.useEffect(() => {
     const interval = setInterval(() => {
       setProgress(prev => {
-        if (prev >= 1) { clearInterval(interval); return 1; }
+        if (prev >= 1) {
+          clearInterval(interval);
+          if (destination) router.replace(destination as any);
+          return 1;
+        }
         return prev + 0.01;
       });
     }, 30);
     return () => clearInterval(interval);
-  }, []);
-
-  if (!fontsLoaded) return null;
+  }, [destination]);
 
   return (
     <View style={styles.container}>
@@ -41,7 +52,7 @@ export default function HomeScreen() {
         {/* Main content */}
         <View style={styles.content}>
             <Text style={styles.title}>healthevate</Text>
-            <ProgressBar
+            <Progress.Bar
                 progress={progress}
                 width={650}
                 color={Colors.greenOutline}
