@@ -13,7 +13,7 @@ export default function LoadingScreen() {
   React.useEffect(() => {
     async function checkOnboarding() {
       const value = await AsyncStorage.getItem('hasCompletedOnboarding');
-      setDestination(value === 'true' ? '/(tabs)/habit_update' : '/onboarding/habitIntro');
+      setDestination(value === 'true' ? '/(tabs)/habit_update' : '/onboarding/gameIntro');
     }
     checkOnboarding();
   }, []);

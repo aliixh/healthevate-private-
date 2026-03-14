@@ -1,7 +1,7 @@
-import { Colors, FontFamily, FontSize, ButtonStyles } from '@/constants/theme';
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { ButtonStyles, Colors, FontFamily, FontSize } from '@/constants/theme';
 import { useRouter } from "expo-router";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const LINES = [
     "Welcome to Healthevate...",
@@ -15,7 +15,7 @@ const LINE_PAUSE = 500;
 // speed per character (ms)
 const CHAR_SPEED = 65;
 
-export default function HabitIntroOnboarding() {
+export default function GameIntroOnboarding() {
     const router = useRouter();
     const [typed, setTyped] = React.useState(['', '', '', '']);
     const [currentLine, setCurrentLine] = React.useState(0);
