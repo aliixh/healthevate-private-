@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
     SafeAreaView,
@@ -17,6 +19,7 @@ import {
 } from '../../constants/theme';
 
 export default function ChooseDailyHabits() {
+  const router = useRouter();
   const [selectedHabits, setSelectedHabits] = useState<string[]>([]);
 
   // Total slots available
@@ -129,7 +132,10 @@ export default function ChooseDailyHabits() {
           <TouchableOpacity
             activeOpacity={isNextEnabled ? 0.85 : 1}
             disabled={!isNextEnabled}
-          >
+          onPress={async () => {
+            await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
+            router.replace('/(tabs)/habit_update');
+          }}>
             <View style={ButtonStyles.wrapper}>
               <View
                 style={

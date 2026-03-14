@@ -39,9 +39,7 @@ export default function CharacterSelectionScreen() {
     if (selectedCharacter) {
       try {
         await AsyncStorage.setItem('selectedCharacter', selectedCharacter);
-        await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
-        // Navigate to main app
-        router.replace('/(tabs)');
+        router.push('/habitIntro');
       } catch (error) {
         console.error('Error saving character selection:', error);
       }
