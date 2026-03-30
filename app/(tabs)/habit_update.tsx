@@ -1,8 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { PixelifySans_400Regular, PixelifySans_700Bold, useFonts } from '@expo-google-fonts/pixelify-sans';
 import dayjs from "dayjs";
 import Checkbox from "expo-checkbox";
-import { useEffect, useState } from "react";
-import { AppState, StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { AppState, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { HabitListFilterModal, type HabitListItem } from "@/components/habit-list-filter-modal";
+import { getHabits } from "@/api/habits";
 
 const LAST_RESET_KEY = "lastResetDate";
 
@@ -13,11 +16,17 @@ const habits = {
 };
 
 export default function HabitsScreen() {
+  const [fontsLoaded] = useFonts({ PixelifySans_400Regular, PixelifySans_700Bold });
   const [user, setUser] = useState({
     name: "Lucy Lee",
     coin: 0,
     xp: 0,
   });
+
+  const [habitListOpen, setHabitListOpen] = useState(false);
+  const [habitListLoading, setHabitListLoading] = useState(false);
+  const [habitListItems, setHabitListItems] = useState<HabitListItem[]>([]);
+  const [habitListCategories, setHabitListCategories] = useState<string[]>([]);
 
   const [checked, setChecked] = useState<Record<string, boolean>>({
     one: false,
@@ -25,9 +34,46 @@ export default function HabitsScreen() {
     three: false,
   });
 
+  const fallbackHabitListItems = useMemo<HabitListItem[]>(() => {
+    const categoryPool = ["Physical", "Mental", "Emotional", "Relationships"];
+    return Object.entries(habits).map(([id, habit], index) => ({
+      id,
+      name: habit.name,
+      category: categoryPool[index % categoryPool.length],
+    }));
+  }, []);
+
+  const loadHabitListFromSupabase = async () => {
+    setHabitListLoading(true);
+    try {
+      const data = await getHabits();
+      const rows = Array.isArray(data) ? data : [];
+
+      const items: HabitListItem[] = rows
+        .map((row: any) => {
+          const name = typeof row?.name === "string" ? row.name : null;
+          if (!name) return null;
+          const category = typeof row?.category === "string" ? row.category : undefined;
+          const idRaw = row?.id ?? row?.habit_id ?? `${category ?? "Uncategorized"}:${name}`;
+          return { id: String(idRaw), name, category };
+        })
+        .filter(Boolean) as HabitListItem[];
+
+      const cats = Array.from(
+        new Set(items.map((h) => (h.category ? h.category : "Uncategorized")))
+      );
+
+      setHabitListItems(items);
+      setHabitListCategories(cats);
+    } finally {
+      setHabitListLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadUserData();
     ensureDailyReset();
+    loadHabitListFromSupabase();
 
     const sub = AppState.addEventListener("change", (state) => {
       if (state === "active") ensureDailyReset();
@@ -120,6 +166,8 @@ export default function HabitsScreen() {
     await AsyncStorage.setItem("habitsChecked", JSON.stringify(resetChecked));
   }
 
+  if (!fontsLoaded) return null;
+
   return (
     <View style={styles.background}>
       <View style={styles.container}>
@@ -128,6 +176,19 @@ export default function HabitsScreen() {
       </View>
 
       <Text style={styles.title}>Daily Habits</Text>
+
+      <TouchableOpacity
+        style={styles.openListButton}
+        activeOpacity={0.85}
+        onPress={() => {
+          setHabitListOpen(true);
+          if (!habitListLoading && habitListItems.length === 0) {
+            void loadHabitListFromSupabase();
+          }
+        }}
+      >
+        <Text style={styles.openListButtonText}>Open habit list</Text>
+      </TouchableOpacity>
 
       <View style={styles.container}>
         {Object.entries(habits).map(([key, habit]) => (
@@ -146,6 +207,19 @@ export default function HabitsScreen() {
           </View>
         ))}
       </View>
+
+      <HabitListFilterModal
+        visible={habitListOpen}
+        habits={habitListItems.length > 0 ? habitListItems : fallbackHabitListItems}
+        categories={
+          habitListCategories.length > 0
+            ? habitListCategories
+            : ["Physical", "Mental", "Emotional", "Relationships"]
+        }
+        loading={habitListLoading}
+        onRequestClose={() => setHabitListOpen(false)}
+        onConfirm={() => setHabitListOpen(false)}
+      />
     </View>
   );
 }
@@ -180,5 +254,19 @@ const styles = StyleSheet.create({
   text: {
     color: "#FFF1CA",
     fontSize: 18,
+  },
+  openListButton: {
+    alignSelf: "flex-start",
+    backgroundColor: "#CE6832",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginBottom: 14,
+  },
+  openListButtonText: {
+    color: "#FFFAF1",
+    fontSize: 14,
+    fontWeight: "700",
+    fontFamily: "PixelifySans_700Bold",
   },
 });
