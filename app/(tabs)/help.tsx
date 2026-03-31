@@ -1,7 +1,7 @@
-import { useFonts, PixelifySans_400Regular, PixelifySans_700Bold } from '@expo-google-fonts/pixelify-sans';
-import { useRef, useState } from 'react';
-import { Animated, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Colors, FontFamily } from '@/constants/theme';
+import { PixelifySans_400Regular, PixelifySans_700Bold, useFonts } from '@expo-google-fonts/pixelify-sans';
+import { useRef, useState } from 'react';
+import { Animated, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function GameInformationScreen() {
   const [fontsLoaded] = useFonts({ PixelifySans_400Regular, PixelifySans_700Bold });
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   },
   backButtonWrapper: {
     position: 'absolute',
-    top: 20,
+    top: 0,
     left: 40,
     zIndex: 10,
   },
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 80,
-    paddingTop: 120,
+    paddingTop: 40,
     alignItems: 'center',
   },
   title: {

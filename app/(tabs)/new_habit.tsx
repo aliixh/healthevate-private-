@@ -52,7 +52,7 @@ export default function ChooseDailyHabits() {
         {/* Help Button - Top Right */}
         <TouchableOpacity 
           activeOpacity={0.85}
-          style={styles.helpButtonWrapper}
+          style={styles.helpButtonWrapper} onPress={() => router.push('/help')}
         >
           <View style={ButtonStyles.wrapper}>
             <View style={ButtonStyles.helpShadow} />
