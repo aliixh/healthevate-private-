@@ -2,18 +2,20 @@
  * File: app/(tabs)/habit-tracker.tsx
  * npx expo install expo-image-picker expo-screen-orientation
  */
+import { getHabits } from '@/api/habits';
+import { type HabitListItem } from '@/components/habit-list-filter-modal';
 import {
-    ButtonStyles, Colors, FontFamily, FontSize,
-    PopupStyles, Radius, Spacing,
+  ButtonStyles, Colors, FontFamily, FontSize,
+  PopupStyles, Radius, Spacing,
 } from '@/constants/theme';
 import * as ImagePicker from 'expo-image-picker';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    Alert, Animated, Image, KeyboardAvoidingView, Modal,
-    PanResponder, Platform, SafeAreaView, ScrollView,
-    StyleSheet, Text, TextInput, TouchableOpacity,
-    useWindowDimensions, View,
+  Alert, Animated, Image, KeyboardAvoidingView, Modal,
+  PanResponder, Platform, SafeAreaView, ScrollView,
+  StyleSheet, Text, TextInput, TouchableOpacity,
+  useWindowDimensions, View,
 } from 'react-native';
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
@@ -35,13 +37,6 @@ const COIN_W        = 56;
 const COIN_IMG: any = null;
 const MAX_MAIN      = 3;
 let   NEXT_ID       = 100;
-
-const HABIT_LIBRARY = [
-  { category: 'physical health', items: ['go for a run','do 20 push-ups','stretch for 10 mins','drink 2L water','sleep before midnight'] },
-  { category: 'mental health',   items: ['meditate','journal','read for 30 minutes','gratitude log','digital detox hour'] },
-  { category: 'nutrition',       items: ['eat vegetables','no sugar today','eat 100g protein','no alcohol','cook at home'] },
-  { category: 'productivity',    items: ['plan tomorrow','inbox zero','deep work block','learn something new'] },
-];
 
 const DEFAULT_HABITS: Habit[] = [
   { id:'1',  label:'drink water',        coins:50   },
@@ -284,6 +279,129 @@ function PhotoModal({ visible, habitName, onCamera, onGallery, onSkip }: {
   );
 }
 
+// ─── HABIT LIBRARY SIDEBAR ───────────────────────────────────────────────────
+// Embeds the HabitListFilterModal UI as an inline sidebar panel (not a popup).
+// Same search + category filter + list behaviour, just rendered in-place.
+function HabitLibrarySidebar({ items, categories, loading, addedLabels, onSelect }: {
+  items: HabitListItem[];
+  categories: string[];
+  loading: boolean;
+  addedLabels: string[];
+  onSelect: (name: string) => void;
+}) {
+  const [query, setQuery]                   = useState('');
+  const [filterOpen, setFilterOpen]         = useState(false);
+  const [appliedCats, setAppliedCats]       = useState<string[]>([]);
+  const [draftCats, setDraftCats]           = useState<string[]>([]);
+
+  const filtered = items.filter(h => {
+    const matchesCat = appliedCats.length === 0 || appliedCats.includes(h.category ?? 'Other');
+    const matchesQ   = !query.trim() || h.name.toLowerCase().includes(query.trim().toLowerCase());
+    return matchesCat && matchesQ;
+  });
+
+  const toggleDraft = (cat: string) =>
+    setDraftCats(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
+
+  const applyFilter = () => { setAppliedCats(draftCats); setFilterOpen(false); };
+  const openFilter  = () => { setDraftCats(appliedCats); setFilterOpen(true); };
+
+  return (
+    <View style={s.editRight}>
+      <Text style={s.editRightTitle}>habit list</Text>
+
+      {/* Search row */}
+      <View style={s.libSearchRow}>
+        <View style={s.libSearchWrap}>
+          <TextInput
+            style={s.libSearchInput}
+            placeholder="search..."
+            placeholderTextColor={Colors.greyOutText}
+            value={query}
+            onChangeText={setQuery}
+            autoCorrect={false}
+            autoCapitalize="none"
+          />
+        </View>
+        <TouchableOpacity style={s.libFilterBtn} onPress={openFilter}>
+          <View style={[s.libFilterCircle, appliedCats.length > 0 && s.libFilterCircleActive]}>
+            <View style={s.libFilterLine} />
+            <View style={[s.libFilterLine, { width: 8 }]} />
+            <View style={s.libFilterLine} />
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      {/* Habit list */}
+      {loading ? (
+        <View style={{ flex:1, alignItems:'center', justifyContent:'center' }}>
+          <Text style={s.libCat}>loading...</Text>
+        </View>
+      ) : (
+        <ScrollView style={{ flex:1 }} showsVerticalScrollIndicator>
+          {filtered.length === 0 ? (
+            <Text style={s.libEmpty}>no habits found</Text>
+          ) : (
+            filtered.map((item, idx) => {
+              const added = addedLabels.includes(item.name.toLowerCase());
+              return (
+                <React.Fragment key={item.id}>
+                  {idx > 0 && <View style={s.libSep} />}
+                  <TouchableOpacity
+                    style={[s.libRow, added && s.libRowAdded]}
+                    activeOpacity={0.7}
+                    onPress={() => !added && onSelect(item.name)}
+                    disabled={added}
+                  >
+                    
+                    <Text style={[s.libRowTxt, added && s.libRowAdded]}>{item.name}</Text>
+                    {added && <Text style={s.libCheck}>✓</Text>}
+                  </TouchableOpacity>
+                </React.Fragment>
+              );
+            })
+          )}
+        </ScrollView>
+      )}
+
+      {/* Category filter overlay */}
+      {filterOpen && (
+        <View style={s.libFilterOverlay}>
+          <View style={s.libFilterPopup}>
+            <View style={s.libFilterHeader}>
+              <TouchableOpacity onPress={() => setFilterOpen(false)}>
+                <Text style={s.libFilterClose}>✕</Text>
+              </TouchableOpacity>
+              <Text style={s.libFilterTitle}>filter by category</Text>
+            </View>
+            <View style={s.libFilterBody}>
+              {categories.map(cat => {
+                const checked = draftCats.includes(cat);
+                return (
+                  <TouchableOpacity key={cat} style={s.libFilterRow} onPress={() => toggleDraft(cat)}>
+                    <View style={[s.libCheckbox, checked && s.libCheckboxOn]} />
+                    <Text style={s.libFilterRowTxt}>{cat}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            <View style={s.libFilterFooter}>
+              <TouchableOpacity activeOpacity={0.85} onPress={applyFilter}>
+                <View style={ButtonStyles.wrapper}>
+                  <View style={ButtonStyles.nextShadow} />
+                  <View style={ButtonStyles.next}>
+                    <Text style={ButtonStyles.nextText}>apply</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+}
+
 // ─── EDIT SCREEN ─────────────────────────────────────────────────────────────
 function EditScreen({ initialHabits, onSave, onDismiss }: {
   initialHabits: Habit[];
@@ -310,6 +428,38 @@ function EditScreen({ initialHabits, onSave, onDismiss }: {
   const pendingLib      = useRef('');
   const pendingGoalType = useRef<'main'|'side'>('side');
   const unsaved         = useRef(false);
+
+  // ── Supabase habit library ──
+  const [libItems, setLibItems]         = useState<HabitListItem[]>([]);
+  const [libCategories, setLibCategories] = useState<string[]>([]);
+  const [libLoading, setLibLoading]     = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      setLibLoading(true);
+      try {
+        const data = await getHabits();
+        const rows = Array.isArray(data) ? data : [];
+        const items: HabitListItem[] = rows
+          .map((row: any) => {
+            const name = typeof row?.name === 'string' ? row.name : null;
+            if (!name) return null;
+            const category = typeof row?.category === 'string' ? row.category : 'Other';
+            const id = String(row?.id ?? row?.habit_id ?? `${category}:${name}`);
+            return { id, name, category };
+          })
+          .filter(Boolean) as HabitListItem[];
+        const cats = Array.from(new Set(items.map(h => h.category ?? 'Other')));
+        setLibItems(items);
+        setLibCategories(cats);
+      } catch (e) {
+        console.error('Failed to load habit library', e);
+      } finally {
+        setLibLoading(false);
+      }
+    };
+    load();
+  }, []);
 
   const editHabits = habitsRef.current; // convenience alias for rendering
 
@@ -339,9 +489,9 @@ function EditScreen({ initialHabits, onSave, onDismiss }: {
   const submitCustom = () => {
     const val = customText.trim();
     if (!val) return;
-    inputRef.current?.blur();
     addHabit({ id: String(NEXT_ID++), label: val, coins: null });
     setCustomText('');
+    // Don't blur — let keyboard stay open so user can type more habits
   };
 
   // ── library ──
@@ -364,7 +514,10 @@ function EditScreen({ initialHabits, onSave, onDismiss }: {
   };
 
   // ── save ──
+  const isSavingRef = useRef(false);
   const doSave = (after: () => void) => {
+    if (isSavingRef.current) return; // prevent double-trigger
+    isSavingRef.current = true;
     inputRef.current?.blur();
     setSaving(true);
     setProgress(0);
@@ -375,9 +528,10 @@ function EditScreen({ initialHabits, onSave, onDismiss }: {
       if (pct < 100) { setTimeout(tick, 40); }
       else setTimeout(() => {
         setSaving(false);
+        isSavingRef.current = false;
         unsaved.current = false;
-        onSave([...habitsRef.current]); // pass a copy
-        after();
+        onSave([...habitsRef.current]);
+        after(); // () => {} for save-in-place, onDismiss for save-and-exit
       }, 200);
     };
     setTimeout(tick, 40);
@@ -435,7 +589,7 @@ function EditScreen({ initialHabits, onSave, onDismiss }: {
                 onChangeText={setCustomText}
                 onSubmitEditing={submitCustom}
                 returnKeyType="done"
-                blurOnSubmit
+                blurOnSubmit={false}
                 maxLength={40}
               />
             </View>
@@ -454,27 +608,14 @@ function EditScreen({ initialHabits, onSave, onDismiss }: {
         </View>
       </KeyboardAvoidingView>
 
-      {/* RIGHT — habit library */}
-      <View style={s.editRight}>
-        <Text style={s.editRightTitle}>habit list</Text>
-        <ScrollView showsVerticalScrollIndicator style={{ flex: 1 }}>
-          {HABIT_LIBRARY.map(({ category, items }) => (
-            <View key={category}>
-              <Text style={s.libCat}>{category}</Text>
-              {items.map(label => {
-                const added = addedLabels.includes(label.toLowerCase());
-                return (
-                  <TouchableOpacity key={label} style={[s.libItem, added && s.libItemAdded]}
-                    activeOpacity={0.7} onPress={() => !added && onLibTap(label)} disabled={added}>
-                    <Text style={s.libItemTxt}>{label}</Text>
-                    {added && <Text style={s.libCheck}>✓</Text>}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          ))}
-        </ScrollView>
-      </View>
+      {/* RIGHT — habit library sidebar (HabitListFilterModal UI embedded inline) */}
+      <HabitLibrarySidebar
+        items={libItems}
+        categories={libCategories}
+        loading={libLoading}
+        addedLabels={addedLabels}
+        onSelect={onLibTap}
+      />
 
       {/* Save progress overlay */}
       {saving && (
@@ -830,13 +971,33 @@ const s = StyleSheet.create({
   customInput: { fontFamily:FontFamily.handwriting, fontSize:FontSize.md, color:Colors.textGreen },
   saveBtnWrap: { alignItems:'center', paddingTop:Spacing.sm },
 
-  editRight:     { width:220, borderLeftWidth:2, borderLeftColor:Colors.greenOutline, backgroundColor:Colors.offWhite, padding:Spacing.md },
-  editRightTitle:{ fontFamily:FontFamily.pixelBold, fontSize:FontSize.md, color:Colors.textGreen, textAlign:'center', marginBottom:Spacing.sm },
-  libCat:        { fontFamily:FontFamily.pixelBold, fontSize:FontSize.xs, color:Colors.textGreen, paddingVertical:4, paddingHorizontal:4, opacity:0.7 },
-  libItem:       { paddingVertical:5, paddingHorizontal:8, borderRadius:6, flexDirection:'row', alignItems:'center', justifyContent:'space-between' },
-  libItemAdded:  { opacity:0.4 },
-  libItemTxt:    { fontFamily:FontFamily.handwriting, fontSize:FontSize.sm, color:Colors.textGreen },
-  libCheck:      { fontSize:11, color:Colors.textGreen },
+  editRight:      { width:220, borderLeftWidth:2, borderLeftColor:Colors.greenOutline, backgroundColor:Colors.offWhite, padding:Spacing.md, position:'relative' },
+  editRightTitle: { fontFamily:FontFamily.pixelBold, fontSize:FontSize.md, color:Colors.textGreen, textAlign:'center', marginBottom:Spacing.sm },
+  libSearchRow:   { flexDirection:'row', alignItems:'center', gap:Spacing.xs, marginBottom:Spacing.sm },
+  libSearchWrap:  { flex:1, backgroundColor:Colors.greyOutLight, borderRadius:Radius.full, paddingHorizontal:Spacing.sm, paddingVertical:Spacing.xs },
+  libSearchInput: { fontFamily:FontFamily.pixel, fontSize:FontSize.xs, color:Colors.textGreen, paddingVertical:0 },
+  libFilterBtn:   { width:28, height:28, alignItems:'center', justifyContent:'center' },
+  libFilterCircle:       { width:22, height:22, borderRadius:11, borderWidth:2, borderColor:Colors.greenOutline, alignItems:'center', justifyContent:'center', gap:2 },
+  libFilterCircleActive: { borderColor:Colors.orange },
+  libFilterLine:  { width:12, height:2, backgroundColor:Colors.greenOutline, borderRadius:2 },
+  libRow:         { paddingVertical:8, paddingHorizontal:4, flexDirection:'row', alignItems:'center', justifyContent:'space-between' },
+  libRowAdded:    { opacity:0.4 },
+  libRowTxt:      { fontFamily:FontFamily.handwriting, fontSize:FontSize.sm, color:Colors.textGreen },
+  libSep:         { height:1.5, backgroundColor:Colors.greenOutline, opacity:0.2 },
+  libEmpty:       { fontFamily:FontFamily.pixel, fontSize:FontSize.xs, color:Colors.textGreen, textAlign:'center', paddingTop:Spacing.md, opacity:0.6 },
+  libCheck:       { fontSize:11, color:Colors.textGreen },
+  libCat:         { fontFamily:FontFamily.pixelBold, fontSize:FontSize.xs, color:Colors.textGreen, paddingVertical:4, paddingHorizontal:4, opacity:0.7 },
+  libFilterOverlay:{ position:'absolute', top:0, left:0, right:0, bottom:0, backgroundColor:'rgba(255,250,241,0.97)', zIndex:20, padding:Spacing.sm },
+  libFilterPopup:  { flex:1 },
+  libFilterHeader: { flexDirection:'row', alignItems:'center', gap:Spacing.xs, marginBottom:Spacing.sm },
+  libFilterClose:  { fontFamily:FontFamily.pixelBold, fontSize:FontSize.md, color:Colors.orange, paddingHorizontal:4 },
+  libFilterTitle:  { fontFamily:FontFamily.pixelBold, fontSize:FontSize.sm, color:Colors.textGreen },
+  libFilterBody:   { gap:Spacing.sm, paddingLeft:4, marginBottom:Spacing.md },
+  libFilterRow:    { flexDirection:'row', alignItems:'center', gap:Spacing.sm },
+  libCheckbox:     { width:14, height:14, borderWidth:2, borderColor:Colors.greenOutline, backgroundColor:Colors.transparent },
+  libCheckboxOn:   { backgroundColor:Colors.greenOutline },
+  libFilterRowTxt: { fontFamily:FontFamily.pixel, fontSize:FontSize.sm, color:Colors.textGreen },
+  libFilterFooter: { alignItems:'flex-end' },
 
   saveOverlay: { position:'absolute', top:0, left:0, right:0, bottom:0, backgroundColor:'rgba(43,26,14,0.5)', alignItems:'center', justifyContent:'center', zIndex:80, gap:Spacing.sm },
   saveLabel:   { fontFamily:FontFamily.pixelBold, fontSize:FontSize.md, color:Colors.offWhite },
