@@ -314,7 +314,17 @@ function EditScreen({ initialHabits, onSave, onDismiss }: {
   const editHabits = habitsRef.current; // convenience alias for rendering
 
   // ── helpers ──
+  const hasHabitLabel = (label: string) => {
+    const key = label.trim().toLowerCase();
+    if (!key) return false;
+    return habitsRef.current.some(h => h.label.trim().toLowerCase() === key);
+  };
+
   const addHabit = (h: Habit) => {
+    if (habitsRef.current.some(x => x.id === h.id) || hasHabitLabel(h.label)) {
+      Alert.alert('Already added', 'That habit is already in your list.');
+      return;
+    }
     habitsRef.current = [...habitsRef.current, h];
     unsaved.current = true;
     forceUpdate();
@@ -327,6 +337,10 @@ function EditScreen({ initialHabits, onSave, onDismiss }: {
   };
 
   const insertMainHabit = (h: Habit) => {
+    if (habitsRef.current.some(x => x.id === h.id) || hasHabitLabel(h.label)) {
+      Alert.alert('Already added', 'That habit is already in your list.');
+      return;
+    }
     const arr  = [...habitsRef.current];
     const last = arr.reduce((a, x, i) => x.coins != null ? i : a, -1);
     arr.splice(last + 1, 0, h);
@@ -339,6 +353,10 @@ function EditScreen({ initialHabits, onSave, onDismiss }: {
   const submitCustom = () => {
     const val = customText.trim();
     if (!val) return;
+    if (hasHabitLabel(val)) {
+      Alert.alert('Already added', 'That habit is already in your list.');
+      return;
+    }
     inputRef.current?.blur();
     addHabit({ id: String(NEXT_ID++), label: val, coins: null });
     setCustomText('');
@@ -359,6 +377,10 @@ function EditScreen({ initialHabits, onSave, onDismiss }: {
   const confirmAdd = () => {
     setShowNewHabit(false);
     const isMain = pendingGoalType.current === 'main';
+    if (hasHabitLabel(pendingLib.current)) {
+      Alert.alert('Already added', 'That habit is already in your list.');
+      return;
+    }
     const newH: Habit = { id: String(NEXT_ID++), label: pendingLib.current, coins: isMain ? 50 : null };
     if (isMain) insertMainHabit(newH); else addHabit(newH);
   };

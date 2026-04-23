@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+    Alert,
     SafeAreaView,
     StatusBar,
     StyleSheet,
@@ -9,6 +10,8 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { getHabits } from '@/api/habits';
+import { HabitListFilterModal, type HabitListItem } from '@/components/habit-list-filter-modal';
 import {
     ButtonStyles,
     Colors,
@@ -20,30 +23,122 @@ import {
 
 export default function ChooseDailyHabits() {
   const router = useRouter();
-  const [selectedHabits, setSelectedHabits] = useState<string[]>([]);
-
-  // Total slots available
   const totalSlots = 5;
   const requiredSlots = 3;
 
+  const [selectedHabitSlots, setSelectedHabitSlots] = useState<(string | null)[]>(
+    Array.from({ length: totalSlots }, () => null)
+  );
+  const [activeSlotIndex, setActiveSlotIndex] = useState<number | null>(null);
+
+  const [habitListOpen, setHabitListOpen] = useState(false);
+  const [habitListLoading, setHabitListLoading] = useState(false);
+  const [habitListItems, setHabitListItems] = useState<HabitListItem[]>([]);
+  const [habitListCategories, setHabitListCategories] = useState<string[]>([]);
+
+  const selectedHabitIds = useMemo(
+    () => selectedHabitSlots.filter(Boolean) as string[],
+    [selectedHabitSlots]
+  );
+  const selectedHabitIdSet = useMemo(() => new Set(selectedHabitIds), [selectedHabitIds]);
+
+  const fallbackHabitListItems = useMemo<HabitListItem[]>(() => {
+    const categoryPool = ["Physical", "Mental", "Emotional", "Relationships"];
+    const fallback = [
+      { id: "one", name: "Write in Journal" },
+      { id: "two", name: "8 Hours of Sleep" },
+      { id: "three", name: "10 mins of reading" },
+    ];
+    return fallback.map((h, index) => ({
+      id: h.id,
+      name: h.name,
+      category: categoryPool[index % categoryPool.length],
+    }));
+  }, []);
+
+  const getHabitLabelById = (id: string) => {
+    const fromSupabase = habitListItems.find((h) => h.id === id);
+    if (fromSupabase) return fromSupabase.name;
+    const fromFallback = fallbackHabitListItems.find((h) => h.id === id);
+    return fromFallback ? fromFallback.name : id;
+  };
+
+  const loadHabitListFromSupabase = async () => {
+    setHabitListLoading(true);
+    try {
+      const data = await getHabits();
+      const rows = Array.isArray(data) ? data : [];
+
+      const items: HabitListItem[] = rows
+        .map((row: any) => {
+          const name = typeof row?.name === "string" ? row.name : null;
+          if (!name) return null;
+          const category = typeof row?.category === "string" ? row.category : undefined;
+          const idRaw = row?.id ?? row?.habit_id ?? `${category ?? "Uncategorized"}:${name}`;
+          return { id: String(idRaw), name, category };
+        })
+        .filter(Boolean) as HabitListItem[];
+
+      const cats = Array.from(
+        new Set(items.map((h) => (h.category ? h.category : "Uncategorized")))
+      );
+
+      setHabitListItems(items);
+      setHabitListCategories(cats);
+    } finally {
+      setHabitListLoading(false);
+    }
+  };
+
+  const persistSelectedHabitIds = async (ids: string[]) => {
+    await AsyncStorage.setItem("selectedHabitIds", JSON.stringify(ids));
+  };
+
+  useEffect(() => {
+    void loadHabitListFromSupabase();
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem("selectedHabitIds");
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return;
+        const ids = parsed.filter((v) => typeof v === "string") as string[];
+        if (ids.length === 0) return;
+        setSelectedHabitSlots((prev) => {
+          const next = [...prev];
+          for (let i = 0; i < Math.min(totalSlots, ids.length); i++) next[i] = ids[i];
+          return next;
+        });
+      } catch {
+        // ignore
+      }
+    })();
+  }, []);
+
   const toggleHabit = (index: number) => {
-    // Only allow adding habits if we haven't reached the limit
-    const habitId = `habit-${index}`;
-    
-    if (selectedHabits.includes(habitId)) {
-      // Remove habit
-      setSelectedHabits(selectedHabits.filter(id => id !== habitId));
-    } else if (selectedHabits.length < totalSlots) {
-      // Add habit
-      setSelectedHabits([...selectedHabits, habitId]);
+    const current = selectedHabitSlots[index];
+    if (current) {
+      // Remove habit from this slot
+      const next = [...selectedHabitSlots];
+      next[index] = null;
+      setSelectedHabitSlots(next);
+      void persistSelectedHabitIds(next.filter(Boolean) as string[]);
+      return;
+    }
+
+    // Open the habit database, respecting locked slots
+    setActiveSlotIndex(index);
+    setHabitListOpen(true);
+    if (!habitListLoading && habitListItems.length === 0) {
+      void loadHabitListFromSupabase();
     }
   };
 
   const isSlotEnabled = (index: number) => {
-    return selectedHabits.length >= requiredSlots || index < requiredSlots;
+    return selectedHabitIds.length >= requiredSlots || index < requiredSlots;
   };
 
-  const isNextEnabled = selectedHabits.length >= requiredSlots;
+  const isNextEnabled = selectedHabitIds.length >= requiredSlots;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -76,21 +171,29 @@ export default function ChooseDailyHabits() {
                 onPress={() => toggleHabit(index)}
                 style={styles.habitSlotWrapper}
               >
-                <View
-                  style={[
-                    styles.habitSlot,
-                    isSlotEnabled(index) && styles.habitSlotEnabled,
-                  ]}
-                >
-                  <Text
+                {selectedHabitSlots[index] ? (
+                  <View style={[styles.habitSlot, styles.habitSlotEnabled]}>
+                    <Text style={styles.habitLabel} numberOfLines={1}>
+                      {getHabitLabelById(selectedHabitSlots[index] as string)}
+                    </Text>
+                  </View>
+                ) : (
+                  <View
                     style={[
-                      styles.plusSign,
-                      isSlotEnabled(index) && styles.plusSignEnabled,
+                      styles.habitSlot,
+                      isSlotEnabled(index) && styles.habitSlotEnabled,
                     ]}
                   >
-                    +
-                  </Text>
-                </View>
+                    <Text
+                      style={[
+                        styles.plusSign,
+                        isSlotEnabled(index) && styles.plusSignEnabled,
+                      ]}
+                    >
+                      +
+                    </Text>
+                  </View>
+                )}
               </TouchableOpacity>
             ))}
           </View>
@@ -102,26 +205,34 @@ export default function ChooseDailyHabits() {
                 key={index}
                 activeOpacity={0.7}
                 onPress={() => toggleHabit(index)}
-                disabled={!isSlotEnabled(index)}
+                disabled={!isSlotEnabled(index) && !selectedHabitSlots[index]}
                 style={styles.habitSlotWrapper}
               >
-                <View
-                  style={[
-                    styles.habitSlot,
-                    isSlotEnabled(index) && styles.habitSlotEnabled,
-                    !isSlotEnabled(index) && styles.habitSlotDisabled,
-                  ]}
-                >
-                  <Text
+                {selectedHabitSlots[index] ? (
+                  <View style={[styles.habitSlot, styles.habitSlotEnabled]}>
+                    <Text style={styles.habitLabel} numberOfLines={1}>
+                      {getHabitLabelById(selectedHabitSlots[index] as string)}
+                    </Text>
+                  </View>
+                ) : (
+                  <View
                     style={[
-                      styles.plusSign,
-                      isSlotEnabled(index) && styles.plusSignEnabled,
-                      !isSlotEnabled(index) && styles.plusSignDisabled,
+                      styles.habitSlot,
+                      isSlotEnabled(index) && styles.habitSlotEnabled,
+                      !isSlotEnabled(index) && styles.habitSlotDisabled,
                     ]}
                   >
-                    +
-                  </Text>
-                </View>
+                    <Text
+                      style={[
+                        styles.plusSign,
+                        isSlotEnabled(index) && styles.plusSignEnabled,
+                        !isSlotEnabled(index) && styles.plusSignDisabled,
+                      ]}
+                    >
+                      +
+                    </Text>
+                  </View>
+                )}
               </TouchableOpacity>
             ))}
           </View>
@@ -134,6 +245,7 @@ export default function ChooseDailyHabits() {
             disabled={!isNextEnabled}
           onPress={async () => {
             await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
+            await persistSelectedHabitIds(selectedHabitIds);
             router.replace('/(tabs)/habit_update');
           }}>
             <View style={ButtonStyles.wrapper}>
@@ -175,6 +287,40 @@ export default function ChooseDailyHabits() {
           </Text>
         </View>
       </View>
+
+      <HabitListFilterModal
+        visible={habitListOpen}
+        habits={habitListItems.length > 0 ? habitListItems : fallbackHabitListItems}
+        categories={
+          habitListCategories.length > 0
+            ? habitListCategories
+            : ["Physical", "Mental", "Emotional", "Relationships"]
+        }
+        disabledHabitIds={selectedHabitIds}
+        loading={habitListLoading}
+        onRequestClose={() => {
+          setHabitListOpen(false);
+          setActiveSlotIndex(null);
+        }}
+        onConfirm={(habit) => {
+          if (selectedHabitIdSet.has(habit.id)) {
+            Alert.alert("Already selected", "Pick a different habit.");
+            return;
+          }
+          if (activeSlotIndex === null) {
+            setHabitListOpen(false);
+            return;
+          }
+
+          const next = [...selectedHabitSlots];
+          next[activeSlotIndex] = habit.id;
+          setSelectedHabitSlots(next);
+          void persistSelectedHabitIds(next.filter(Boolean) as string[]);
+
+          setHabitListOpen(false);
+          setActiveSlotIndex(null);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -250,6 +396,13 @@ const styles = StyleSheet.create({
   },
   plusSignDisabled: {
     color: Colors.greyOutText,
+  },
+  habitLabel: {
+    fontFamily: FontFamily.pixel,
+    fontSize: 16,
+    color: Colors.textGreen,
+    paddingHorizontal: 16,
+    textAlign: 'center',
   },
   nextButtonWrapper: {
     position: 'absolute',

@@ -5,10 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="63557871-3fea-48cb-b63f-0517e5b4653e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/onboarding/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/onboarding/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/onboarding/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/onboarding/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(tabs)/habit-tracker.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(tabs)/habit-tracker.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(tabs)/habit_update.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(tabs)/habit_update.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(tabs)/new_habit.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(tabs)/new_habit.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/habit-list-filter-modal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/habit-list-filter-modal.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

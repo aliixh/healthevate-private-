@@ -23,6 +23,8 @@ export default function HabitsScreen() {
     xp: 0,
   });
 
+  const [selectedHabitIds, setSelectedHabitIds] = useState<string[]>([]);
+
   const [habitListOpen, setHabitListOpen] = useState(false);
   const [habitListLoading, setHabitListLoading] = useState(false);
   const [habitListItems, setHabitListItems] = useState<HabitListItem[]>([]);
@@ -74,6 +76,7 @@ export default function HabitsScreen() {
     loadUserData();
     ensureDailyReset();
     loadHabitListFromSupabase();
+    loadSelectedHabitIds();
 
     const sub = AppState.addEventListener("change", (state) => {
       if (state === "active") ensureDailyReset();
@@ -81,6 +84,24 @@ export default function HabitsScreen() {
 
     return () => sub.remove();
   }, []);
+
+  const loadSelectedHabitIds = async () => {
+    try {
+      const raw = await AsyncStorage.getItem("selectedHabitIds");
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        setSelectedHabitIds(parsed.filter((v) => typeof v === "string"));
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  const persistSelectedHabitIds = async (ids: string[]) => {
+    setSelectedHabitIds(ids);
+    await AsyncStorage.setItem("selectedHabitIds", JSON.stringify(ids));
+  };
 
   const loadUserData = async () => {
     try {
@@ -216,9 +237,16 @@ export default function HabitsScreen() {
             ? habitListCategories
             : ["Physical", "Mental", "Emotional", "Relationships"]
         }
+        disabledHabitIds={selectedHabitIds}
         loading={habitListLoading}
         onRequestClose={() => setHabitListOpen(false)}
-        onConfirm={() => setHabitListOpen(false)}
+        onConfirm={async (habit) => {
+          const id = habit.id;
+          if (!selectedHabitIds.includes(id)) {
+            await persistSelectedHabitIds([...selectedHabitIds, id]);
+          }
+          setHabitListOpen(false);
+        }}
       />
     </View>
   );
