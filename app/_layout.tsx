@@ -3,6 +3,10 @@ import { useFonts, PixelifySans_400Regular, PixelifySans_700Bold } from '@expo-g
 import { NovaCut_400Regular } from '@expo-google-fonts/nova-cut';
 import { Gluten_400Regular, Gluten_700Bold } from '@expo-google-fonts/gluten';
 
+export const unstable_settings = {
+  initialRouteName: 'onboarding',
+};
+
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     PixelifySans_400Regular,

@@ -24,7 +24,7 @@ export default function CharacterSelectionScreen() {
       const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
       if (hasCompletedOnboarding === 'true') {
         // User has already completed onboarding, skip to main app
-        router.replace('/(tabs)');
+        router.replace('/(tabs)/loading');
       }
     } catch (error) {
       console.error('Error checking onboarding status:', error);
