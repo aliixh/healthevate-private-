@@ -34,6 +34,10 @@ export default function ChooseDailyHabits() {
   const [habitListItems, setHabitListItems] = useState<HabitListItem[]>([]);
   const [habitListCategories, setHabitListCategories] = useState<string[]>([]);
 
+  // NEW
+  const [activeSlot, setActiveSlot] = useState<number | null>(null);
+  const [slotHabits, setSlotHabits] = useState<Record<number, string>>({});
+
   const [checked, setChecked] = useState<Record<string, boolean>>({
     one: false,
     two: false,
@@ -174,7 +178,7 @@ export default function ChooseDailyHabits() {
     if (selectedHabits.includes(habitId)) {
       setSelectedHabits(selectedHabits.filter(id => id !== habitId));
     } else if (selectedHabits.length < totalSlots) {
-      // Open the habit list modal to pick a habit for this slot
+      setActiveSlot(index); // NEW
       setHabitListOpen(true);
       if (!habitListLoading && habitListItems.length === 0) {
         void loadHabitListFromSupabase();
@@ -247,8 +251,10 @@ export default function ChooseDailyHabits() {
                       styles.plusSign,
                       isSlotEnabled(index) && styles.plusSignEnabled,
                     ]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
                   >
-                    +
+                    {slotHabits[index] ?? '+'}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -278,13 +284,19 @@ export default function ChooseDailyHabits() {
                       isSlotEnabled(index) && styles.plusSignEnabled,
                       !isSlotEnabled(index) && styles.plusSignDisabled,
                     ]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
                   >
-                    +
+                    {slotHabits[index] ?? '+'}
                   </Text>
                 </View>
               </TouchableOpacity>
             ))}
-            
+
+            {/* NEW - optional hint text */}
+            <Text style={styles.optionalHintText}>
+              Feel free to add additional habits{'\n'}(optional)
+            </Text>
           </View>
         </View>
 
@@ -361,7 +373,12 @@ export default function ChooseDailyHabits() {
         }
         loading={habitListLoading}
         onRequestClose={() => setHabitListOpen(false)}
-        onConfirm={() => setHabitListOpen(false)}
+        onConfirm={(habit) => {
+          if (activeSlot !== null && habit?.name) {
+            setSlotHabits(prev => ({ ...prev, [activeSlot]: habit.name }));
+          }
+          setHabitListOpen(false);
+        }}
       />
     </SafeAreaView>
   );
@@ -478,5 +495,14 @@ const styles = StyleSheet.create({
     color: Colors.offWhite,
     textAlign: 'center',
     lineHeight: FontSize.md * 1.5,
+  },
+  // NEW
+  optionalHintText: {
+    fontFamily: FontFamily.novaCut,
+    fontSize: FontSize.md,
+    color: Colors.greenOutline,
+    textAlign: 'center',
+    marginTop: Spacing.sm,
+    marginRight: Spacing.xxl,
   },
 });
