@@ -6,8 +6,19 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
+
+import * as ScreenOrientation from 'expo-screen-orientation';
+import { useEffect } from 'react';
+
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+
+  useEffect(() => {
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+    return () => {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.DEFAULT);
+    };
+  }, []);
 
   return (
     <Tabs
