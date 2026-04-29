@@ -1,8 +1,16 @@
-# Welcome to your Expo app 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# Welcome to Healthevate 👋
+
+## Features:
+- Go through our onboarding process in which you can enter your name and choose the main character you want to play in the story game!
+- Choose a habit from our database to track. You can choose to filter based on category!
+- When you complete your daily habit, log a photo to our calender which showcases your progress over time. 
+- Confused by where to start? No problem! Look through our help page for best practices to get the most out of the game. 
+
 
 ## Get started
+
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
 1. Install dependencies
 
@@ -45,10 +53,3 @@ To learn more about developing your project with Expo, look at the following res
 
 - [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
 - [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
