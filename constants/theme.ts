@@ -5,6 +5,9 @@
 
 import { StyleSheet } from 'react-native';
 
+const SCALE = 0.8;
+const s = (n: number) => Math.round(n * SCALE);
+
 // ─────────────────────────────────────────
 // COLORS
 // ─────────────────────────────────────────
@@ -53,35 +56,35 @@ export const FontFamily = {
 };
 
 export const FontSize = {
-  xs:    10,
-  sm:    12,
-  md:    16,
-  lg:    20,
-  xl:    26,
-  xxl:   34,
-  title: 172,
+  xs:    s(10),
+  sm:    s(12),
+  md:    s(16),
+  lg:    s(20),
+  xl:    s(26),
+  xxl:   s(34),
+  title: s(172),
 };
 
 // ─────────────────────────────────────────
 // SPACING
 // ─────────────────────────────────────────
 export const Spacing = {
-  xs:  4,
-  sm:  8,
-  md:  16,
-  lg:  24,
-  xl:  32,
-  xxl: 48,
+  xs:  s(4),
+  sm:  s(8),
+  md:  s(16),
+  lg:  s(24),
+  xl:  s(32),
+  xxl: s(48),
 };
 
 // ─────────────────────────────────────────
 // BORDER RADIUS
 // ─────────────────────────────────────────
 export const Radius = {
-  sm:   4,
-  md:   8,
-  lg:   16,
-  xl:   24,
+  sm:   s(4),
+  md:   s(8),
+  lg:   s(16),
+  xl:   s(24),
   full: 999,
 };
 
@@ -130,7 +133,7 @@ export const ButtonStyles = StyleSheet.create({
   next: {
     backgroundColor: Colors.orange,
     borderRadius: Radius.md,
-    paddingVertical: Spacing.sm + 2,
+    paddingVertical: Spacing.sm + s(2),
     paddingHorizontal: Spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
@@ -138,7 +141,7 @@ export const ButtonStyles = StyleSheet.create({
   },
   nextShadow: {
     position: 'absolute',
-    bottom: -5,
+    bottom: -s(5),
     left: 0,
     right: 0,
     height: '100%',
@@ -156,7 +159,7 @@ export const ButtonStyles = StyleSheet.create({
   nextDisabled: {
     backgroundColor: Colors.greyOutLight,
     borderRadius: Radius.md,
-    paddingVertical: Spacing.sm + 2,
+    paddingVertical: Spacing.sm + s(2),
     paddingHorizontal: Spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
@@ -164,7 +167,7 @@ export const ButtonStyles = StyleSheet.create({
   },
   nextDisabledShadow: {
     position: 'absolute',
-    bottom: -5,
+    bottom: -s(5),
     left: 0,
     right: 0,
     height: '100%',
@@ -182,15 +185,15 @@ export const ButtonStyles = StyleSheet.create({
   back: {
     backgroundColor: Colors.orange,
     borderRadius: Radius.lg,
-    width: 52,
-    height: 52,
+    width: s(52),
+    height: s(52),
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,
   },
   backShadow: {
     position: 'absolute',
-    bottom: -5,
+    bottom: -s(5),
     left: 0,
     right: 0,
     height: '100%',
@@ -203,15 +206,15 @@ export const ButtonStyles = StyleSheet.create({
   help: {
     backgroundColor: Colors.orange,
     borderRadius: Radius.lg,
-    width: 48,
-    height: 48,
+    width: s(48),
+    height: s(48),
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,
   },
   helpShadow: {
     position: 'absolute',
-    bottom: -5,
+    bottom: -s(5),
     left: 0,
     right: 0,
     height: '100%',
@@ -229,15 +232,15 @@ export const ButtonStyles = StyleSheet.create({
   profile: {
     backgroundColor: Colors.orange,
     borderRadius: Radius.lg,
-    width: 52,
-    height: 52,
+    width: s(52),
+    height: s(52),
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,
   },
   profileShadow: {
     position: 'absolute',
-    bottom: -5,
+    bottom: -s(5),
     left: 0,
     right: 0,
     height: '100%',
@@ -248,22 +251,22 @@ export const ButtonStyles = StyleSheet.create({
   profileIconWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 3,
+    gap: s(3),
   },
   profileHead: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2.5,
+    width: s(16),
+    height: s(16),
+    borderRadius: s(8),
+    borderWidth: s(2.5),
     borderColor: Colors.offWhite,
     backgroundColor: Colors.transparent,
   },
   profileBody: {
-    width: 26,
-    height: 13,
-    borderTopLeftRadius: 13,
-    borderTopRightRadius: 13,
-    borderWidth: 2.5,
+    width: s(26),
+    height: s(13),
+    borderTopLeftRadius: s(13),
+    borderTopRightRadius: s(13),
+    borderWidth: s(2.5),
     borderBottomWidth: 0,
     borderColor: Colors.offWhite,
     backgroundColor: Colors.transparent,
@@ -281,7 +284,7 @@ export const ButtonStyles = StyleSheet.create({
   },
   popupPrimaryShadow: {
     position: 'absolute',
-    bottom: -5,
+    bottom: -s(5),
     left: 0,
     right: 0,
     height: '100%',
@@ -307,7 +310,7 @@ export const ButtonStyles = StyleSheet.create({
   },
   popupSecondaryShadow: {
     position: 'absolute',
-    bottom: -5,
+    bottom: -s(5),
     left: 0,
     right: 0,
     height: '100%',
@@ -331,17 +334,17 @@ export const ButtonStyles = StyleSheet.create({
     borderTopRightRadius: 0,
     borderBottomLeftRadius: Radius.md,
     borderBottomRightRadius: Radius.md,
-    paddingTop: 3,
+    paddingTop: s(3),
     paddingBottom: Spacing.sm,
     paddingHorizontal: Spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,
-    minWidth: 44,
+    minWidth: s(44),
   },
   dropdownShadow: {
     position: 'absolute',
-    bottom: -4,
+    bottom: -s(4),
     left: 0,
     right: 0,
     height: '100%',
@@ -356,9 +359,9 @@ export const ButtonStyles = StyleSheet.create({
   dropdownChevron: {
     width: 0,
     height: 0,
-    borderLeftWidth: 8,
-    borderRightWidth: 8,
-    borderTopWidth: 9,
+    borderLeftWidth: s(8),
+    borderRightWidth: s(8),
+    borderTopWidth: s(9),
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
     borderTopColor: Colors.darkGrey,
@@ -385,7 +388,11 @@ export const ButtonStyles = StyleSheet.create({
 // ─────────────────────────────────────────
 export const PopupStyles = StyleSheet.create({
   overlay: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: 'rgba(43, 26, 14, 0.4)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -393,7 +400,7 @@ export const PopupStyles = StyleSheet.create({
   container: {
     backgroundColor: Colors.offWhite,
     borderRadius: Radius.xl,
-    borderWidth: 3,
+    borderWidth: s(3),
     borderColor: Colors.greenOutline,
     paddingVertical: Spacing.lg,
     paddingHorizontal: Spacing.xl,
@@ -434,13 +441,13 @@ export const ComponentStyles = StyleSheet.create({
     backgroundColor: Colors.offWhite,
     borderRadius: Radius.md,
     padding: Spacing.md,
-    borderWidth: 1.5,
+    borderWidth: s(1.5),
     borderColor: Colors.greenOutline,
   },
   input: {
     backgroundColor: Colors.textbox,
     borderRadius: Radius.sm,
-    borderWidth: 1.5,
+    borderWidth: s(1.5),
     borderColor: Colors.greenOutline,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
