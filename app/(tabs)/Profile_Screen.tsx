@@ -4,6 +4,7 @@ import { NovaCut_400Regular } from '@expo-google-fonts/nova-cut';
 import { PixelifySans_400Regular, PixelifySans_700Bold, useFonts } from '@expo-google-fonts/pixelify-sans';
 import { useState } from 'react';
 import { Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { usePlayerStats } from '@/lib/player-stats';
 
 export default function ProfileScreen() {
   const [fontsLoaded] = useFonts({ 
@@ -12,6 +13,7 @@ export default function ProfileScreen() {
     Gluten_400Regular,
     NovaCut_400Regular
   });
+  const { coins, xp } = usePlayerStats();
   
   const [isEditing, setIsEditing] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
@@ -25,8 +27,6 @@ export default function ProfileScreen() {
   if (!fontsLoaded) return null;
 
   // FOR NOW - will be game-dependent
-  const coins = 4000;
-  const xp = 20000;
   const streak = [true, true, true, false, false, false, false]; // 7 days
 
   const handleEdit = () => {
@@ -196,7 +196,7 @@ export default function ProfileScreen() {
                 <View style={styles.modalButtonWrapper}>
                   <View style={styles.modalButtonShadow} />
                   <TouchableOpacity style={styles.modalButton} onPress={handleDontSave}>
-                    <Text style={styles.modalButtonText}>Don't Save</Text>
+                    <Text style={styles.modalButtonText}>{`Don't Save`}</Text>
                   </TouchableOpacity>
                 </View>
                 <View style={styles.modalButtonWrapper}>
