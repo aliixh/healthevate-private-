@@ -12,6 +12,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
 
 import {
   ButtonStyles,
@@ -28,8 +29,9 @@ export type HabitListItem = {
   category?: string;
 };
 
-type AnimatedPressableProps = React.ComponentProps<typeof Pressable> & {
+type AnimatedPressableProps = Omit<React.ComponentProps<typeof Pressable>, 'style'> & {
   disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
 };
 
 function AnimatedPressable({ disabled, style, children, ...props }: AnimatedPressableProps) {
