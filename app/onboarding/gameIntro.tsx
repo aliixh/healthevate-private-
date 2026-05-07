@@ -5,8 +5,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const LINES = [
     "Welcome to Healthevate...",
-    "You are about to embark on a journey of self-growth.",
-    "We're excited to support you every step of the way.",
+    "We're excited to support you on your journey of self-growth.",
     "Let's get you set up!",
 ];
 

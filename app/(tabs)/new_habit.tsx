@@ -94,10 +94,16 @@ export default function ChooseDailyHabits() {
       const savedCoins = await AsyncStorage.getItem("userCoins");
       const savedXP = await AsyncStorage.getItem("userXP");
       const savedChecked = await AsyncStorage.getItem("habitsChecked");
+      const savedSlotHabits = await AsyncStorage.getItem("selectedHabits");
 
       if (savedCoins) setUser(prev => ({ ...prev, coin: parseInt(savedCoins) }));
       if (savedXP) setUser(prev => ({ ...prev, xp: parseInt(savedXP) }));
       if (savedChecked) setChecked(JSON.parse(savedChecked));
+      if (savedSlotHabits) {
+        const parsed = JSON.parse(savedSlotHabits);
+        setSlotHabits(parsed);
+        setSelectedHabits(Object.keys(parsed).map(k => `habit-${k}`));
+      }
     } catch (err) {
       console.error("Error loading user data:", err);
     }
@@ -138,7 +144,10 @@ export default function ChooseDailyHabits() {
 
     const resetChecked = { one: false, two: false, three: false };
     setChecked(resetChecked);
+    setSlotHabits({});
+    setSelectedHabits([]);
     await AsyncStorage.setItem("habitsChecked", JSON.stringify(resetChecked));
+    await AsyncStorage.removeItem("selectedHabits");
   }
 
   async function ensureDailyReset() {
@@ -373,9 +382,11 @@ export default function ChooseDailyHabits() {
         }
         loading={habitListLoading}
         onRequestClose={() => setHabitListOpen(false)}
-        onConfirm={(habit) => {
+        onConfirm={async (habit) => {
           if (activeSlot !== null && habit?.name) {
-            setSlotHabits(prev => ({ ...prev, [activeSlot]: habit.name }));
+            const updated = { ...slotHabits, [activeSlot]: habit.name };
+            setSlotHabits(updated);
+            await AsyncStorage.setItem('selectedHabits', JSON.stringify(updated));
           }
           setHabitListOpen(false);
         }}

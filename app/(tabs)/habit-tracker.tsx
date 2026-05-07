@@ -8,6 +8,7 @@ import {
   ButtonStyles, Colors, FontFamily, FontSize,
   PopupStyles, Radius, Spacing,
 } from '@/constants/theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import React, { useEffect, useRef, useState } from 'react';
@@ -39,16 +40,6 @@ const MAX_MAIN      = 3;
 let   NEXT_ID       = 100;
 
 const DEFAULT_HABITS: Habit[] = [
-  { id:'1',  label:'drink water',        coins:50   },
-  { id:'2',  label:'journal',            coins:50   },
-  { id:'3',  label:'go to gym',          coins:50   },
-  { id:'4',  label:'walk 10,000 steps',  coins:null },
-  { id:'5',  label:'eat 100g of protein',coins:null },
-  { id:'6',  label:'meditate 10 mins',   coins:null },
-  { id:'7',  label:'read 20 pages',      coins:null },
-  { id:'8',  label:'cold shower',        coins:null },
-  { id:'9',  label:'no sugar today',     coins:null },
-  { id:'10', label:'stretch / mobility', coins:null },
 ];
 
 // Always fresh — never cached from bundle parse time
@@ -679,7 +670,28 @@ export default function HabitsScreen({
     return () => { ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.DEFAULT); };
   }, []);
 
-  const [habits, setHabits]           = useState<Habit[]>(propHabits);
+  const [habits, setHabits] = useState<Habit[]>(propHabits);
+
+useEffect(() => {
+  const loadHabits = async () => {
+    try {
+      const saved = await AsyncStorage.getItem('selectedHabits');
+      if (saved) {
+        const parsed: Record<number, string> = JSON.parse(saved);
+        const loaded: Habit[] = Object.entries(parsed).map(([slot, name]) => ({
+          id: `slot-${slot}`,
+          label: name,
+          coins: parseInt(slot) < 3 ? 50 : null, // first 3 slots are main habits
+        }));
+        setHabits(loaded);
+        setSelId(loaded[0]?.id ?? '');
+      }
+    } catch (err) {
+      console.error('Error loading habits from storage:', err);
+    }
+  };
+  loadHabits();
+}, []);
   const [selId, setSelId]             = useState(propHabits[0]?.id ?? '');
   const [checkedMap, setCheckedMap]   = useState<Record<string,CheckedEntry>>({});
   const [coins, setCoins]             = useState(playerCoins);
