@@ -6,6 +6,7 @@ import {
     ButtonStyles, Colors, FontFamily, FontSize,
     PopupStyles, Radius, Spacing,
 } from '@/constants/theme';
+import { usePlayerStats } from '@/lib/player-stats';
 import * as ImagePicker from 'expo-image-picker';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import React, { useEffect, useRef, useState } from 'react';
@@ -292,7 +293,7 @@ function EditScreen({ initialHabits, onSave, onDismiss }: {
 }) {
   // Use a ref as the source of truth for the habit list — no stale closures
   const habitsRef  = useRef<Habit[]>(initialHabits.map(h => ({ ...h })));
-  const [render, setRender] = useState(0); // bump to trigger re-render
+  const [, setRender] = useState(0); // bump to trigger re-render
   const forceUpdate = () => setRender(n => n + 1);
 
   const [customText, setCustomText] = useState('');
@@ -554,6 +555,7 @@ export default function HabitsScreen({
   onAddCoins  = () => {},
 }: Props) {
   const { width: SW } = useWindowDimensions();
+  const { coins, xp, incrementCoins, incrementXP } = usePlayerStats({ coins: playerCoins, xp: playerXP });
 
   useEffect(() => {
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
@@ -563,12 +565,12 @@ export default function HabitsScreen({
   const [habits, setHabits]           = useState<Habit[]>(propHabits);
   const [selId, setSelId]             = useState(propHabits[0]?.id ?? '');
   const [checkedMap, setCheckedMap]   = useState<Record<string,CheckedEntry>>({});
-  const [coins, setCoins]             = useState(playerCoins);
   const [editOpen, setEditOpen]       = useState(false);
   const [showPhoto, setShowPhoto]     = useState(false);
   const [showSkip, setShowSkip]       = useState(false);
   const [flyCoins, setFlyCoins]       = useState<any[]>([]);
   const [toastAmt, setToastAmt]       = useState(0);
+  const [toastXpAmt, setToastXpAmt]   = useState(0);
 
   // Pending habit stored in ref — never stale in async callbacks
   const pendingHabit = useRef<Habit | null>(null);
@@ -579,6 +581,8 @@ export default function HabitsScreen({
 
   const toastY   = useRef(new Animated.Value(0)).current;
   const toastOpa = useRef(new Animated.Value(0)).current;
+  const xpToastY   = useRef(new Animated.Value(0)).current;
+  const xpToastOpa = useRef(new Animated.Value(0)).current;
 
   // Calendar drag
   const calAnim = useRef(new Animated.Value(0)).current;
@@ -619,7 +623,7 @@ export default function HabitsScreen({
         })));
         setTimeout(() => {
           setFlyCoins([]);
-          setCoins(p => p + amount);
+          void incrementCoins(amount);
           onAddCoins(amount);
           setToastAmt(amount);
           toastY.setValue(0); toastOpa.setValue(1);
@@ -631,11 +635,27 @@ export default function HabitsScreen({
       });
   };
 
+  const animateXP = (amount: number) => {
+    void incrementXP(amount);
+    setToastXpAmt(amount);
+    xpToastY.setValue(0);
+    xpToastOpa.setValue(1);
+    Animated.parallel([
+      Animated.timing(xpToastY, { toValue: -20, duration: 700, useNativeDriver: true }),
+      Animated.sequence([
+        Animated.delay(400),
+        Animated.timing(xpToastOpa, { toValue: 0, duration: 300, useNativeDriver: true }),
+      ]),
+    ]).start();
+  };
+
   // ── complete habit ──
   const completeHabit = (habit: Habit, uri: string|null) => {
     setCheckedMap(prev => ({ ...prev, [habit.id]: { photoUri: uri } }));
     pendingHabit.current = null;
     if (habit.coins) animateCoins(habit.coins);
+    // Award XP for every completed task
+    animateXP(100);
   };
 
   const onCheck = (habit: Habit) => { pendingHabit.current = habit; setShowPhoto(true); };
@@ -681,9 +701,17 @@ export default function HabitsScreen({
           <View style={s.left}>
             <View style={s.header}>
               <BackBtn onPress={() => navigation?.goBack?.()} />
-              <View ref={pillRef}><StatsPill coins={coins} xp={playerXP} /></View>
+              <View ref={pillRef}><StatsPill coins={coins} xp={xp} /></View>
               <Text style={s.title}>Habits</Text>
               <Animated.Text style={[s.toast,{transform:[{translateY:toastY}],opacity:toastOpa}]}>+{toastAmt}</Animated.Text>
+              <Animated.Text
+                style={[
+                  s.xpToast,
+                  { transform: [{ translateY: xpToastY }], opacity: xpToastOpa },
+                ]}
+              >
+                +{toastXpAmt} XP
+              </Animated.Text>
             </View>
 
             <ScrollView style={s.listScroll} contentContainerStyle={s.listContent}
@@ -757,7 +785,7 @@ function FlyingCoin({ sx, sy, ex, ey, delay }: { sx:number;sy:number;ex:number;e
       ]).start();
     }, delay);
     return () => clearTimeout(t);
-  }, []);
+  }, [delay, ex, ey, opa, pos]);
   return (
     <Animated.View style={[s.flyingCoin,{transform:[{translateX:pos.x},{translateY:pos.y}],opacity:opa}]}>
       <Text style={s.flyingCoinTxt}>¢</Text>
@@ -775,6 +803,7 @@ const s = StyleSheet.create({
   title:  { fontFamily:FontFamily.pixelBold, fontSize:FontSize.xl, color:Colors.textGreen, marginLeft:Spacing.xs },
   backChevron: { fontFamily:FontFamily.pixelBold, fontSize:FontSize.lg, color:Colors.offWhite },
   toast:  { position:'absolute', top:0, left:60, fontFamily:FontFamily.pixelBold, fontSize:FontSize.sm, color:Colors.yellowCoin },
+  xpToast:{ position:'absolute', top:18, left:60, fontFamily:FontFamily.pixelBold, fontSize:FontSize.sm, color:Colors.purple },
 
   statsPill:   { backgroundColor:Colors.offWhite, borderRadius:Radius.md, borderWidth:2.5, borderColor:Colors.greenOutline, paddingHorizontal:Spacing.sm, paddingVertical:Spacing.xs+2, flexDirection:'row', alignItems:'center', gap:Spacing.xs+2 },
   statsRow:    { flexDirection:'row', alignItems:'center', gap:Spacing.xs },

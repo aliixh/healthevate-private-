@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AppState, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { HabitListFilterModal, type HabitListItem } from "@/components/habit-list-filter-modal";
 import { getHabits } from "@/api/habits";
+import { usePlayerStats } from "@/lib/player-stats";
 
 const LAST_RESET_KEY = "lastResetDate";
 
@@ -17,11 +18,7 @@ const habits = {
 
 export default function HabitsScreen() {
   const [fontsLoaded] = useFonts({ PixelifySans_400Regular, PixelifySans_700Bold });
-  const [user, setUser] = useState({
-    name: "Lucy Lee",
-    coin: 0,
-    xp: 0,
-  });
+  const { coins, xp, incrementCoins, setCoins, setXP } = usePlayerStats();
 
   const [selectedHabitIds, setSelectedHabitIds] = useState<string[]>([]);
 
@@ -110,8 +107,8 @@ export default function HabitsScreen() {
       const savedXP = await AsyncStorage.getItem("userXP");
       const savedChecked = await AsyncStorage.getItem("habitsChecked");
       
-      if (savedCoins) setUser(prev => ({ ...prev, coin: parseInt(savedCoins) }));
-      if (savedXP) setUser(prev => ({ ...prev, xp: parseInt(savedXP) }));
+      if (savedCoins) await setCoins(parseInt(savedCoins));
+      if (savedXP) await setXP(parseInt(savedXP));
       if (savedChecked) setChecked(JSON.parse(savedChecked));
     } catch (err) {
       // handleError() equivalent - error handling
@@ -121,13 +118,11 @@ export default function HabitsScreen() {
 
   const handleCheck = async (key: string, coin: number) => {
     const newChecked = { ...checked, [key]: true };
-    const newCoins = user.coin + coin;
     
     setChecked(newChecked);
-    setUser(prev => ({ ...prev, coin: newCoins }));
     
     // storeData() equivalent - saving to AsyncStorage
-    await AsyncStorage.setItem("userCoins", newCoins.toString());
+    await incrementCoins(coin);
     await AsyncStorage.setItem("habitsChecked", JSON.stringify(newChecked));
   };
 
@@ -192,8 +187,8 @@ export default function HabitsScreen() {
   return (
     <View style={styles.background}>
       <View style={styles.container}>
-        <Text style={styles.text}>Coins: {user.coin}</Text>
-        <Text style={styles.text}>XP: {user.xp}</Text>
+        <Text style={styles.text}>Coins: {coins}</Text>
+        <Text style={styles.text}>XP: {xp}</Text>
       </View>
 
       <Text style={styles.title}>Daily Habits</Text>
