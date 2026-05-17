@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     text: {
         color: Colors.textGreen,
         fontFamily: FontFamily.pixel,
-        fontSize: FontSize.xl,
+        fontSize: FontSize.xxl,
         textAlign: 'center',
     },
     borderLine: {

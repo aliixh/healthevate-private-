@@ -295,8 +295,8 @@ const styles = StyleSheet.create({
   avatarCardShadow: {
     position: 'absolute',
     bottom: -8,
-    right: -8,
-    width: 220,
+    right: -19,
+    width: 170,
     height: 280,
     backgroundColor: Colors.darkGreenShadow,
     borderRadius: 12,
@@ -306,8 +306,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 30,
     alignItems: 'center',
-    width: 150,
+    width: 180,
     height: 280,
+    marginLeft: 160,
   },
   avatarSquare: {
     width: 110,
@@ -325,6 +326,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    marginLeft: 150,
     paddingHorizontal: 100,
     paddingTop: 10,
     justifyContent: 'center',
@@ -360,8 +362,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   streakCircle: {
-    width: 30,
-    height: 30,
+    width: 28,
+    height: 28,
     borderRadius: 18,
     borderWidth: 2,
     borderColor: Colors.orange,
@@ -372,7 +374,7 @@ const styles = StyleSheet.create({
   },
   giftIcon: {
     fontSize: 28,
-    marginLeft: 10,
+    marginLeft: 0,
   },
   editButtonWrapper: {
     alignSelf: 'center',
@@ -382,7 +384,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -4,
     right: -4,
-    width: 140,
+    width: 50,
     height: 45,
     backgroundColor: Colors.darkGrey,
     borderRadius: 8,
