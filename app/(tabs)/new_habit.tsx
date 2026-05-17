@@ -1,33 +1,35 @@
-import { getHabits } from "@/api/habits";
-import { HabitListFilterModal, type HabitListItem } from "@/components/habit-list-filter-modal";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import dayjs from "dayjs";
-import { AppState, SafeAreaView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from "react";
-
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  ButtonStyles,
-  Colors,
-  FontFamily,
-  FontSize,
-  Radius,
-  Spacing,
+    Alert,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { getHabits } from '@/api/habits';
+import { HabitListFilterModal, type HabitListItem } from '@/components/habit-list-filter-modal';
+import {
+    ButtonStyles,
+    Colors,
+    FontFamily,
+    FontSize,
+    Radius,
+    Spacing,
 } from '../../constants/theme';
-
-const LAST_RESET_KEY = "lastResetDate";
-
-const habits = {
-  one: { name: "Write in Journal", coin: 20, difficulty: "hard" },
-  two: { name: "8 Hours of Sleep", coin: 15, difficulty: "medium" },
-  three: { name: "10 mins of reading", coin: 10, difficulty: "easy" },
-};
 
 export default function ChooseDailyHabits() {
   const router = useRouter();
-  const [selectedHabits, setSelectedHabits] = useState<string[]>([]);
-  const [showWarning, setShowWarning] = useState(false);
+  const totalSlots = 5;
+  const requiredSlots = 3;
+
+  const [selectedHabitSlots, setSelectedHabitSlots] = useState<(string | null)[]>(
+    Array.from({ length: totalSlots }, () => null)
+  );
+  const [activeSlotIndex, setActiveSlotIndex] = useState<number | null>(null);
 
   const [habitListOpen, setHabitListOpen] = useState(false);
   const [habitListLoading, setHabitListLoading] = useState(false);
@@ -38,29 +40,32 @@ export default function ChooseDailyHabits() {
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
   const [slotHabits, setSlotHabits] = useState<Record<number, string>>({});
 
-  const [checked, setChecked] = useState<Record<string, boolean>>({
-    one: false,
-    two: false,
-    three: false,
-  });
-
-  const [user, setUser] = useState({
-    name: "Lucy Lee",
-    coin: 0,
-    xp: 0,
-  });
-
-  const totalSlots = 5;
-  const requiredSlots = 3;
+  const selectedHabitIds = useMemo(
+    () => selectedHabitSlots.filter(Boolean) as string[],
+    [selectedHabitSlots]
+  );
+  const selectedHabitIdSet = useMemo(() => new Set(selectedHabitIds), [selectedHabitIds]);
 
   const fallbackHabitListItems = useMemo<HabitListItem[]>(() => {
     const categoryPool = ["Physical", "Mental", "Emotional", "Relationships"];
-    return Object.entries(habits).map(([id, habit], index) => ({
-      id,
-      name: habit.name,
+    const fallback = [
+      { id: "one", name: "Write in Journal" },
+      { id: "two", name: "8 Hours of Sleep" },
+      { id: "three", name: "10 mins of reading" },
+    ];
+    return fallback.map((h, index) => ({
+      id: h.id,
+      name: h.name,
       category: categoryPool[index % categoryPool.length],
     }));
   }, []);
+
+  const getHabitLabelById = (id: string) => {
+    const fromSupabase = habitListItems.find((h) => h.id === id);
+    if (fromSupabase) return fromSupabase.name;
+    const fromFallback = fallbackHabitListItems.find((h) => h.id === id);
+    return fromFallback ? fromFallback.name : id;
+  };
 
   const loadHabitListFromSupabase = async () => {
     setHabitListLoading(true);
@@ -89,96 +94,29 @@ export default function ChooseDailyHabits() {
     }
   };
 
-  const loadUserData = async () => {
-    try {
-      const savedCoins = await AsyncStorage.getItem("userCoins");
-      const savedXP = await AsyncStorage.getItem("userXP");
-      const savedChecked = await AsyncStorage.getItem("habitsChecked");
-      const savedSlotHabits = await AsyncStorage.getItem("selectedHabits");
-
-      if (savedCoins) setUser(prev => ({ ...prev, coin: parseInt(savedCoins) }));
-      if (savedXP) setUser(prev => ({ ...prev, xp: parseInt(savedXP) }));
-      if (savedChecked) setChecked(JSON.parse(savedChecked));
-      if (savedSlotHabits) {
-        const parsed = JSON.parse(savedSlotHabits);
-        setSlotHabits(parsed);
-        setSelectedHabits(Object.keys(parsed).map(k => `habit-${k}`));
-      }
-    } catch (err) {
-      console.error("Error loading user data:", err);
-    }
+  const persistSelectedHabitIds = async (ids: string[]) => {
+    await AsyncStorage.setItem("selectedHabitIds", JSON.stringify(ids));
   };
-
-  const handleCheck = async (key: string, coin: number) => {
-    const newChecked = { ...checked, [key]: true };
-    const newCoins = user.coin + coin;
-
-    setChecked(newChecked);
-    setUser(prev => ({ ...prev, coin: newCoins }));
-
-    await AsyncStorage.setItem("userCoins", newCoins.toString());
-    await AsyncStorage.setItem("habitsChecked", JSON.stringify(newChecked));
-  };
-
-  async function updateStreak(yesterdayHabits: Record<string, boolean>) {
-    try {
-      const currentStreak = await AsyncStorage.getItem("userStreak");
-      const streak = currentStreak ? parseInt(currentStreak) : 0;
-
-      const completedAnyHabit = Object.values(yesterdayHabits).some(val => val === true);
-      if (completedAnyHabit) {
-        const newStreak = streak + 1;
-        await AsyncStorage.setItem("userStreak", newStreak.toString());
-        console.log(`Streak updated: ${newStreak}`);
-      } else {
-        await AsyncStorage.setItem("userStreak", "0");
-        console.log("Streak reset to 0 - no habits completed yesterday");
-      }
-    } catch (err) {
-      console.error("Error updating streak:", err);
-    }
-  }
-
-  async function resetHabits() {
-    await updateStreak(checked);
-
-    const resetChecked = { one: false, two: false, three: false };
-    setChecked(resetChecked);
-    setSlotHabits({});
-    setSelectedHabits([]);
-    await AsyncStorage.setItem("habitsChecked", JSON.stringify(resetChecked));
-    await AsyncStorage.removeItem("selectedHabits");
-  }
-
-  async function ensureDailyReset() {
-    try {
-      const today = dayjs().format("YYYY-MM-DD");
-      const last = await AsyncStorage.getItem(LAST_RESET_KEY);
-
-      if (last === null) {
-        await AsyncStorage.setItem(LAST_RESET_KEY, today);
-        return;
-      }
-
-      if (last !== today) {
-        await resetHabits();
-        await AsyncStorage.setItem(LAST_RESET_KEY, today);
-      }
-    } catch (err) {
-      console.error("Error in daily reset:", err);
-    }
-  }
 
   useEffect(() => {
-    loadUserData();
-    ensureDailyReset();
-    loadHabitListFromSupabase();
-
-    const sub = AppState.addEventListener("change", (state) => {
-      if (state === "active") ensureDailyReset();
-    });
-
-    return () => sub.remove();
+    void loadHabitListFromSupabase();
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem("selectedHabitIds");
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return;
+        const ids = parsed.filter((v) => typeof v === "string") as string[];
+        if (ids.length === 0) return;
+        setSelectedHabitSlots((prev) => {
+          const next = [...prev];
+          for (let i = 0; i < Math.min(totalSlots, ids.length); i++) next[i] = ids[i];
+          return next;
+        });
+      } catch {
+        // ignore
+      }
+    })();
   }, []);
 
   const toggleHabit = (index: number) => {
@@ -187,7 +125,7 @@ export default function ChooseDailyHabits() {
     if (selectedHabits.includes(habitId)) {
       setSelectedHabits(selectedHabits.filter(id => id !== habitId));
     } else if (selectedHabits.length < totalSlots) {
-      setActiveSlot(index); // NEW
+      // Open the habit list modal to pick a habit for this slot
       setHabitListOpen(true);
       if (!habitListLoading && habitListItems.length === 0) {
         void loadHabitListFromSupabase();
@@ -199,33 +137,19 @@ export default function ChooseDailyHabits() {
   };
 
   const isSlotEnabled = (index: number) => {
-    return selectedHabits.length >= requiredSlots || index < requiredSlots;
+    return selectedHabitIds.length >= requiredSlots || index < requiredSlots;
   };
 
-  const isNextEnabled = selectedHabits.length >= requiredSlots;
+  const isNextEnabled = selectedHabitIds.length >= requiredSlots;
 
   return (
-    
     <SafeAreaView style={styles.safeArea}>
-      
       <StatusBar hidden={true} />
       <View style={styles.container}>
-        <View style={{ flex: 1, flexDirection: 'row' }}>
-          {/* Left lines */}
-          <View style={styles.borderLine} />
-          <View style={styles.dashedLineContainer}>
-            {Array.from({ length: 15 }).map((_, i) => (
-              <View key={i} style={styles.dash} />
-            ))}
-          </View>
-
-          {/* Center content */}
-          <View style={{ flex: 1 }}>
         {/* Help Button - Top Right */}
-        <TouchableOpacity
+        <TouchableOpacity 
           activeOpacity={0.85}
-          style={styles.helpButtonWrapper}
-          onPress={() => router.push('/help')}
+          style={styles.helpButtonWrapper} onPress={() => router.push('/help')}
         >
           <View style={ButtonStyles.wrapper}>
             <View style={ButtonStyles.helpShadow} />
@@ -260,10 +184,8 @@ export default function ChooseDailyHabits() {
                       styles.plusSign,
                       isSlotEnabled(index) && styles.plusSignEnabled,
                     ]}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
                   >
-                    {slotHabits[index] ?? '+'}
+                    +
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -277,7 +199,7 @@ export default function ChooseDailyHabits() {
                 key={index}
                 activeOpacity={0.7}
                 onPress={() => toggleHabit(index)}
-                disabled={!isSlotEnabled(index)}
+                disabled={!isSlotEnabled(index) && !selectedHabitSlots[index]}
                 style={styles.habitSlotWrapper}
               >
                 <View
@@ -293,56 +215,26 @@ export default function ChooseDailyHabits() {
                       isSlotEnabled(index) && styles.plusSignEnabled,
                       !isSlotEnabled(index) && styles.plusSignDisabled,
                     ]}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
                   >
-                    {slotHabits[index] ?? '+'}
+                    +
                   </Text>
                 </View>
               </TouchableOpacity>
             ))}
-
-            {/* NEW - optional hint text */}
-            <Text style={styles.optionalHintText}>
-              Feel free to add additional habits{'\n'}(optional)
-            </Text>
+            
           </View>
         </View>
-
-        {/* Warning Message */}
-        {showWarning && (
-          <View style={styles.instructionsBox}>
-            <Text style={styles.instructionsText}>
-              Please choose at least 3 habits!
-            </Text>
-          </View>
-        )}
-          
-          
-          </View>{/* end center content */}
-
-      {/* Right lines */}
-      <View style={styles.dashedLineContainer}>
-        {Array.from({ length: 15 }).map((_, i) => (
-        <View key={i} style={styles.dash} />
-          ))}
-        </View>
-        <View style={styles.borderLine} />
-      </View>{/* end row */}
 
         {/* Next Button */}
         <View style={styles.nextButtonWrapper}>
           <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={async () => {
-              if (!isNextEnabled) {
-                setShowWarning(true);
-                return;
-              }
-              await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
-              router.replace('/(tabs)/habit_update');
-            }}
-          >
+            activeOpacity={isNextEnabled ? 0.85 : 1}
+            disabled={!isNextEnabled}
+          onPress={async () => {
+            await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
+            await persistSelectedHabitIds(selectedHabitIds);
+            router.replace('/(tabs)/habit_update');
+          }}>
             <View style={ButtonStyles.wrapper}>
               <View
                 style={
@@ -369,7 +261,18 @@ export default function ChooseDailyHabits() {
             </View>
           </TouchableOpacity>
         </View>
-        
+
+        {/* Bottom Instructions */}
+        <View style={styles.instructionsBox}>
+          <Text style={styles.instructionsText}>
+            Clicking the plus signs will open the habit database, first 3 are
+            required.
+          </Text>
+          <Text style={styles.instructionsText}>
+            Last 2 habits are greyed out until they have entered 3 required
+            habits.
+          </Text>
+        </View>
       </View>
 
       <HabitListFilterModal
@@ -380,16 +283,10 @@ export default function ChooseDailyHabits() {
             ? habitListCategories
             : ["Physical", "Mental", "Emotional", "Relationships"]
         }
+        disabledHabitIds={selectedHabitIds}
         loading={habitListLoading}
         onRequestClose={() => setHabitListOpen(false)}
-        onConfirm={async (habit) => {
-          if (activeSlot !== null && habit?.name) {
-            const updated = { ...slotHabits, [activeSlot]: habit.name };
-            setSlotHabits(updated);
-            await AsyncStorage.setItem('selectedHabits', JSON.stringify(updated));
-          }
-          setHabitListOpen(false);
-        }}
+        onConfirm={() => setHabitListOpen(false)}
       />
     </SafeAreaView>
   );
@@ -403,31 +300,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    flexDirection: 'row',
-  },
-  borderLine: {
-    width: 3,
-    backgroundColor: Colors.orange,
-    alignSelf: 'stretch',
-    marginLeft: 8,
-    marginRight: 8,
-  },
-  dashedLineContainer: {
-    width: 2,
-    alignSelf: 'stretch',
-    marginLeft: 8,
-    marginRight: 8,
-    justifyContent: 'space-evenly',
-  },
-  dash: {
-    width: 2,
-    height: 15,
-    backgroundColor: Colors.orange,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.md,
   },
   helpButtonWrapper: {
     position: 'absolute',
     top: Spacing.lg,
-    right: Spacing.lg,
+    right: Spacing.xl,
     zIndex: 10,
   },
   helpText: {
@@ -436,12 +316,11 @@ const styles = StyleSheet.create({
     color: Colors.offWhite,
   },
   title: {
-    fontFamily: FontFamily.pixel,
+    fontFamily: FontFamily.novaCut,
     fontSize: 42,
     color: Colors.greenOutline,
-    marginTop: Spacing.xl,
+    marginTop: Spacing.lg,
     marginBottom: Spacing.xl,
-    marginLeft: Spacing.xl,
   },
   habitsGrid: {
     flexDirection: 'row',
@@ -485,9 +364,16 @@ const styles = StyleSheet.create({
   plusSignDisabled: {
     color: Colors.greyOutText,
   },
+  habitLabel: {
+    fontFamily: FontFamily.pixel,
+    fontSize: 16,
+    color: Colors.textGreen,
+    paddingHorizontal: 16,
+    textAlign: 'center',
+  },
   nextButtonWrapper: {
     position: 'absolute',
-    bottom: 10,
+    bottom: 140,
     right: Spacing.xl,
   },
   instructionsBox: {

@@ -12,6 +12,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
 
 import {
   ButtonStyles,
@@ -28,8 +29,9 @@ export type HabitListItem = {
   category?: string;
 };
 
-type AnimatedPressableProps = React.ComponentProps<typeof Pressable> & {
+type AnimatedPressableProps = Omit<React.ComponentProps<typeof Pressable>, 'style'> & {
   disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
 };
 
 function AnimatedPressable({ disabled, style, children, ...props }: AnimatedPressableProps) {
@@ -78,6 +80,7 @@ type Props = {
   onHelpPress?: () => void;
   loading?: boolean;
   emptyText?: string;
+  disabledHabitIds?: string[];
   categories?: string[];
   initialSelectedCategories?: string[];
   onCategoriesChange?: (categories: string[]) => void;
@@ -93,6 +96,7 @@ export function HabitListFilterModal({
   onHelpPress,
   loading = false,
   emptyText = 'No habits found.',
+  disabledHabitIds = [],
   categories,
   initialSelectedCategories = [],
   onCategoriesChange,
@@ -134,6 +138,8 @@ export function HabitListFilterModal({
       })
       .filter((h) => (q ? h.name.toLowerCase().includes(q) : true));
   }, [habits, appliedCategories, query]);
+
+  const disabledIdSet = useMemo(() => new Set(disabledHabitIds), [disabledHabitIds]);
 
   const selectedHabit = useMemo(
     () => habits.find((h) => h.id === selectedId) ?? null,
@@ -252,13 +258,28 @@ export function HabitListFilterModal({
                 style={styles.list}
                 renderItem={({ item }) => {
                   const active = item.id === selectedId;
+                  const disabled = disabledIdSet.has(item.id);
                   return (
                     <Pressable
                       accessibilityRole="button"
-                      onPress={() => setSelectedId((prev) => (prev === item.id ? null : item.id))}
-                      style={[styles.row, active && styles.rowActive]}
+                      disabled={disabled}
+                      onPress={() => {
+                        if (disabled) return;
+                        setSelectedId((prev) => (prev === item.id ? null : item.id));
+                      }}
+                      style={[
+                        styles.row,
+                        active && styles.rowActive,
+                        disabled && styles.rowDisabled,
+                      ]}
                     >
-                      <Text style={[styles.rowText, active && styles.rowTextActive]}>
+                      <Text
+                        style={[
+                          styles.rowText,
+                          active && styles.rowTextActive,
+                          disabled && styles.rowTextDisabled,
+                        ]}
+                      >
                         {item.name}
                       </Text>
                     </Pressable>
@@ -535,6 +556,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 8,
   },
+  rowDisabled: {
+    opacity: 0.45,
+  },
   rowActive: {
     backgroundColor: Colors.greenButton,
   },
@@ -545,6 +569,9 @@ const styles = StyleSheet.create({
   },
   rowTextActive: {
     color: Colors.offWhite,
+  },
+  rowTextDisabled: {
+    color: Colors.darkGrey,
   },
   separator: {
     height: 2,
