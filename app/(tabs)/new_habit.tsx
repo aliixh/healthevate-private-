@@ -2,7 +2,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-    Alert,
     SafeAreaView,
     StatusBar,
     StyleSheet,
@@ -35,10 +34,6 @@ export default function ChooseDailyHabits() {
   const [habitListLoading, setHabitListLoading] = useState(false);
   const [habitListItems, setHabitListItems] = useState<HabitListItem[]>([]);
   const [habitListCategories, setHabitListCategories] = useState<string[]>([]);
-
-  // NEW
-  const [activeSlot, setActiveSlot] = useState<number | null>(null);
-  const [slotHabits, setSlotHabits] = useState<Record<number, string>>({});
 
   const selectedHabitIds = useMemo(
     () => selectedHabitSlots.filter(Boolean) as string[],
@@ -120,19 +115,20 @@ export default function ChooseDailyHabits() {
   }, []);
 
   const toggleHabit = (index: number) => {
-    const habitId = `habit-${index}`;
-
-    if (selectedHabits.includes(habitId)) {
-      setSelectedHabits(selectedHabits.filter(id => id !== habitId));
-    } else if (selectedHabits.length < totalSlots) {
-      // Open the habit list modal to pick a habit for this slot
+    if (selectedHabitSlots[index]) {
+      // Clear the slot
+      setSelectedHabitSlots((prev) => {
+        const next = [...prev];
+        next[index] = null;
+        return next;
+      });
+    } else {
+      // Open modal to pick a habit for this slot
+      setActiveSlotIndex(index);
       setHabitListOpen(true);
       if (!habitListLoading && habitListItems.length === 0) {
         void loadHabitListFromSupabase();
       }
-      const updated = [...selectedHabits, habitId];
-      setSelectedHabits(updated);
-      if (updated.length >= requiredSlots) setShowWarning(false);
     }
   };
 
@@ -147,7 +143,7 @@ export default function ChooseDailyHabits() {
       <StatusBar hidden={true} />
       <View style={styles.container}>
         {/* Help Button - Top Right */}
-        <TouchableOpacity 
+        <TouchableOpacity
           activeOpacity={0.85}
           style={styles.helpButtonWrapper} onPress={() => router.push('/help')}
         >
@@ -185,7 +181,7 @@ export default function ChooseDailyHabits() {
                       isSlotEnabled(index) && styles.plusSignEnabled,
                     ]}
                   >
-                    +
+                    {selectedHabitSlots[index] ? getHabitLabelById(selectedHabitSlots[index]!) : '+'}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -216,12 +212,11 @@ export default function ChooseDailyHabits() {
                       !isSlotEnabled(index) && styles.plusSignDisabled,
                     ]}
                   >
-                    +
+                    {selectedHabitSlots[index] ? getHabitLabelById(selectedHabitSlots[index]!) : '+'}
                   </Text>
                 </View>
               </TouchableOpacity>
             ))}
-            
           </View>
         </View>
 
@@ -230,11 +225,11 @@ export default function ChooseDailyHabits() {
           <TouchableOpacity
             activeOpacity={isNextEnabled ? 0.85 : 1}
             disabled={!isNextEnabled}
-          onPress={async () => {
-            await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
-            await persistSelectedHabitIds(selectedHabitIds);
-            router.replace('/(tabs)/habit_update');
-          }}>
+            onPress={async () => {
+              await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
+              await persistSelectedHabitIds(selectedHabitIds);
+              router.replace('/(tabs)/habit-tracker');
+            }}>
             <View style={ButtonStyles.wrapper}>
               <View
                 style={
@@ -265,12 +260,10 @@ export default function ChooseDailyHabits() {
         {/* Bottom Instructions */}
         <View style={styles.instructionsBox}>
           <Text style={styles.instructionsText}>
-            Clicking the plus signs will open the habit database, first 3 are
-            required.
+            First 3 habits are required.
           </Text>
           <Text style={styles.instructionsText}>
-            Last 2 habits are greyed out until they have entered 3 required
-            habits.
+            You can select upto 5 habits.
           </Text>
         </View>
       </View>
@@ -286,7 +279,17 @@ export default function ChooseDailyHabits() {
         disabledHabitIds={selectedHabitIds}
         loading={habitListLoading}
         onRequestClose={() => setHabitListOpen(false)}
-        onConfirm={() => setHabitListOpen(false)}
+        onConfirm={(habit) => {
+          if (activeSlotIndex !== null) {
+            setSelectedHabitSlots((prev) => {
+              const next = [...prev];
+              next[activeSlotIndex] = habit.id;
+              return next;
+            });
+            setActiveSlotIndex(null);
+          }
+          setHabitListOpen(false);
+        }}
       />
     </SafeAreaView>
   );
@@ -319,7 +322,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.novaCut,
     fontSize: 42,
     color: Colors.greenOutline,
-    marginTop: Spacing.lg,
+    marginTop: Spacing.md,
     marginBottom: Spacing.xl,
   },
   habitsGrid: {
@@ -337,9 +340,9 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   habitSlot: {
-    height: 60,
+    height: 50,
     borderRadius: Radius.full,
-    borderWidth: 4,
+    borderWidth: 3,
     borderColor: Colors.lightGrey,
     backgroundColor: Colors.lightGrey,
     justifyContent: 'center',
@@ -355,7 +358,7 @@ const styles = StyleSheet.create({
   },
   plusSign: {
     fontFamily: FontFamily.pixel,
-    fontSize: 48,
+    fontSize: 16,
     color: Colors.lightGrey,
   },
   plusSignEnabled: {
@@ -373,7 +376,7 @@ const styles = StyleSheet.create({
   },
   nextButtonWrapper: {
     position: 'absolute',
-    bottom: 140,
+    bottom: 40,
     right: Spacing.xl,
   },
   instructionsBox: {
@@ -382,8 +385,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: Colors.darkGrey,
-    paddingVertical: Spacing.lg,
-    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.xs,
     gap: Spacing.sm,
   },
   instructionsText: {
@@ -393,7 +396,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: FontSize.md * 1.5,
   },
-  // NEW
   optionalHintText: {
     fontFamily: FontFamily.novaCut,
     fontSize: FontSize.md,

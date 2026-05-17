@@ -13,7 +13,7 @@ export default function LoadingScreen() {
   React.useEffect(() => {
     async function checkOnboarding() {
       const value = await AsyncStorage.getItem('hasCompletedOnboarding');
-      setDestination(value === 'true' ? '/(tabs)/habit_update' : '/onboarding/gameIntro');
+      setDestination(value === 'true' ? '/(tabs)/new_habit' : '/onboarding/gameIntro');
     }
     checkOnboarding();
   }, []);
@@ -54,7 +54,7 @@ export default function LoadingScreen() {
             <Text style={styles.title}>healthevate</Text>
             <Progress.Bar
                 progress={progress}
-                width={650}
+                width={530}
                 color={Colors.greenOutline}
                 unfilledColor={'transparent'}
                 borderColor={Colors.greenOutline}
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: FontFamily.novaCut,
-    fontSize: 92,
+    fontSize: 72,
     color: Colors.greenOutline,
     letterSpacing: 4,
   },

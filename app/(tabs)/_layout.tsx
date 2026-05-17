@@ -42,13 +42,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="habit_update"
-        options={{
-          title: 'Habits',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="checkmark.circle.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
         name="habit-tracker"
         options={{
           title: 'Tracker',
@@ -67,13 +60,6 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
         }}
       />
     </Tabs>

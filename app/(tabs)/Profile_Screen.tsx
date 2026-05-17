@@ -139,26 +139,32 @@ export default function ProfileScreen() {
         <Text style={styles.title}>{isEditing ? 'Edit Profile' : 'My Profile'}</Text>
 
         <View style={styles.infoSection}>
-          <Text style={styles.label}>Name</Text>
-          {!isEditing ? (
-            <Text style={styles.value}>{savedName}</Text>
-          ) : (
-            <TextInput
-              style={styles.nameInput}
-              value={editedName}
-              onChangeText={handleNameChange}
-            />
-          )}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Text style={styles.label}>Name</Text>
+            {!isEditing ? (
+              <Text style={styles.value}>{savedName}</Text>
+            ) : (
+              <TextInput
+                style={styles.nameInput}
+                value={editedName}
+                onChangeText={handleNameChange}
+              />
+            )}
+          </View>
         </View>
 
         <View style={styles.infoSection}>
-          <Text style={styles.label}>Coins</Text>
-          <Text style={styles.value}>{coins}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Text style={styles.label}>Coins</Text>
+            <Text style={styles.value}>{coins}</Text>
+          </View>
         </View>
 
         <View style={styles.infoSection}>
-          <Text style={styles.label}>XP</Text>
-          <Text style={styles.value}>{xp}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Text style={styles.label}>XP</Text>
+            <Text style={styles.value}>{xp}</Text>
+          </View>
         </View>
 
         <View style={styles.infoSection}>
@@ -258,15 +264,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -4,
     right: -4,
-    width: 50,
-    height: 50,
+    width: 40,
+    height: 40,
     backgroundColor: Colors.darkGrey,
     borderRadius: 8,
   },
   backButton: {
     backgroundColor: '#B85A28',
-    width: 50,
-    height: 50,
+    width: 40,
+    height: 40,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -278,8 +284,8 @@ const styles = StyleSheet.create({
     color: Colors.offWhite,
   },
   avatarSection: {
-    width: 520,
-    padding: 30,
+    width: 10,
+    padding: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -300,12 +306,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 30,
     alignItems: 'center',
-    width: 220,
+    width: 150,
     height: 280,
   },
   avatarSquare: {
-    width: 140,
-    height: 140,
+    width: 110,
+    height: 150,
     backgroundColor: Colors.greenButton,
     borderWidth: 3,
     borderColor: Colors.orange,
@@ -320,31 +326,31 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 100,
-    paddingTop: 100,
+    paddingTop: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
     fontFamily: FontFamily.pixelBold,
-    fontSize: 48,
+    fontSize: 35,
     color: Colors.greenOutline,
-    marginBottom: 50,
+    marginBottom: 5,
     textAlign: 'center',
   },
   infoSection: {
-    marginBottom: 30,
+    marginBottom: 10,
     alignItems: 'center',
   },
   label: {
     fontFamily: FontFamily.pixelBold,
-    fontSize: 28,
+    fontSize: 17,
     color: Colors.greenOutline,
-    marginBottom: 10,
-    textAlign: 'center',
+    marginBottom: 0,
+    textAlign: 'left',
   },
   value: {
     fontFamily: FontFamily.handwriting,
-    fontSize: 24,
+    fontSize: 17,
     color: Colors.textDark,
     textAlign: 'center',
   },
@@ -354,8 +360,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   streakCircle: {
-    width: 35,
-    height: 35,
+    width: 30,
+    height: 30,
     borderRadius: 18,
     borderWidth: 2,
     borderColor: Colors.orange,
@@ -370,7 +376,7 @@ const styles = StyleSheet.create({
   },
   editButtonWrapper: {
     alignSelf: 'center',
-    marginTop: 20,
+    marginTop: 10,
   },
   editButtonShadow: {
     position: 'absolute',
@@ -385,7 +391,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.greenButton,
     borderRadius: 8,
     paddingVertical: 10,
-    paddingHorizontal: 50,
+    paddingHorizontal: 10,
     cursor: 'pointer',
   },
   editButtonText: {

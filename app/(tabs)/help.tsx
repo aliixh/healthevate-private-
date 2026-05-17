@@ -13,8 +13,9 @@ export default function GameInformationScreen() {
   const slides = [
     {
       title: 'Purpose of Healthevate',
-      content: 'Healthevate is designed to support mental and physical wellbeing through structured, goal-oriented gameplay. By completing real-world habits, players advance in the story, unlock new features, and customize the game experience. This integration of habit tracking and narrative progression reinforces routines and encourages consistent personal growth over time.'
+      content: 'Healthevate is designed to support mental and physical wellbeing through goal-oriented gameplay. By completing real-world habits, players advance in the story, unlock new features, and customize the game experience. This integration reinforces routines and encourages consistent personal growth over time.'
     },
+    // of habit tracking and narrative progression
     {
       title: 'How to Play',
       content: 'Players begin by setting achievable daily habits. When a habit is completed in real life, the app awards XP and coins, which enable progression through story chapters and access to interactive choices or customization options. Habit completion is tracked over time, providing insight into progress and encouraging regular engagement with both the game and daily routines.'
@@ -154,8 +155,8 @@ const styles = StyleSheet.create({
   },
   backButtonWrapper: {
     position: 'absolute',
-    top: 0,
-    left: 40,
+    top: 30,
+    left: 18,
     zIndex: 10,
   },
   backButtonShadow: {
@@ -198,12 +199,12 @@ const styles = StyleSheet.create({
   },
   leftArrow: {
     position: 'absolute',
-    left: 50,
+    left: 5,
     top: '50%',
     marginTop: -25,
     backgroundColor: '#D3D3D3',
-    width: 60,
-    height: 50,
+    width: 50,
+    height: 45,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -212,12 +213,12 @@ const styles = StyleSheet.create({
   },
   rightArrow: {
     position: 'absolute',
-    right: 50,
+    right: 20,
     top: '50%',
     marginTop: -25,
     backgroundColor: '#D3D3D3',
-    width: 60,
-    height: 50,
+    width: 50,
+    height: 45,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -236,32 +237,32 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: 80,
-    paddingTop: 40,
+    padding: 20,
+    paddingTop: 20,
     alignItems: 'center',
   },
   title: {
     fontFamily: FontFamily.pixel,
-    fontSize: 52,
+    fontSize: 40,
     color: Colors.greenOutline,
-    marginBottom: 12,
+    marginBottom: 10,
     textAlign: 'center',
   },
   underline: {
     height: 3,
     backgroundColor: Colors.greenOutline,
-    marginBottom: 50,
+    marginBottom: 22,
   },
   paragraph: {
     fontFamily: FontFamily.pixel,
-    fontSize: 22,
+    fontSize: 20,
     color: Colors.textDark,
     lineHeight: 36,
     textAlign: 'center',
     maxWidth: 800,
   },
   section: {
-    marginBottom: 40,
+    marginBottom: 10,
     alignItems: 'center',
   },
   label: {

@@ -6,6 +6,7 @@ import {
     ButtonStyles, Colors, FontFamily, FontSize,
     PopupStyles, Radius, Spacing,
 } from '@/constants/theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { usePlayerStats } from '@/lib/player-stats';
 import * as ImagePicker from 'expo-image-picker';
 import * as ScreenOrientation from 'expo-screen-orientation';
