@@ -3,6 +3,7 @@ import { NovaCut_400Regular } from '@expo-google-fonts/nova-cut';
 import { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Colors, FontFamily } from '@/constants/theme';
+import { useRouter } from 'expo-router';
 
 export default function CharacterSelectionScreen() {
   const [fontsLoaded] = useFonts({ 
@@ -15,6 +16,14 @@ export default function CharacterSelectionScreen() {
   const handleCharacterSelect = (character: string) => {
     setSelectedCharacter(character);
   };
+
+  // 1. Add import at the top
+
+
+// 2. Add inside the component
+const router = useRouter();
+
+// 3. Add onPress to the TouchableOpacity
 
   if (!fontsLoaded) return null;
 
@@ -61,9 +70,9 @@ export default function CharacterSelectionScreen() {
         {selectedCharacter && (
           <View style={styles.nextButtonWrapper}>
             <View style={styles.nextButtonShadow} />
-            <TouchableOpacity style={styles.nextButton}>
+            <TouchableOpacity style={styles.nextButton} onPress={() => router.push('/loading')}>
               <Text style={styles.nextButtonText}>Next</Text>
-            </TouchableOpacity>
+              </TouchableOpacity>
           </View>
         )}
       </View>

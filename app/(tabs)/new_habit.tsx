@@ -34,6 +34,7 @@ export default function ChooseDailyHabits() {
   const [habitListLoading, setHabitListLoading] = useState(false);
   const [habitListItems, setHabitListItems] = useState<HabitListItem[]>([]);
   const [habitListCategories, setHabitListCategories] = useState<string[]>([]);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   const selectedHabitIds = useMemo(
     () => selectedHabitSlots.filter(Boolean) as string[],
@@ -115,6 +116,7 @@ export default function ChooseDailyHabits() {
   }, []);
 
   const toggleHabit = (index: number) => {
+    if (index >= requiredSlots) setShowInstructions(true);
     if (selectedHabitSlots[index]) {
       // Clear the slot
       setSelectedHabitSlots((prev) => {
@@ -258,14 +260,16 @@ export default function ChooseDailyHabits() {
         </View>
 
         {/* Bottom Instructions */}
-        <View style={styles.instructionsBox}>
-          <Text style={styles.instructionsText}>
-            First 3 habits are required.
-          </Text>
-          <Text style={styles.instructionsText}>
-            You can select upto 5 habits.
-          </Text>
-        </View>
+        {showInstructions && (
+          <View style={styles.instructionsBox}>
+            <Text style={styles.instructionsText}>
+              First 3 habits are required.
+            </Text>
+            <Text style={styles.instructionsText}>
+              You can select upto 5 habits.
+            </Text>
+          </View>
+        )}
       </View>
 
       <HabitListFilterModal
@@ -319,7 +323,7 @@ const styles = StyleSheet.create({
     color: Colors.offWhite,
   },
   title: {
-    fontFamily: FontFamily.novaCut,
+    fontFamily: FontFamily.pixel,
     fontSize: 42,
     color: Colors.greenOutline,
     marginTop: Spacing.md,
@@ -357,7 +361,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.lightGrey,
   },
   plusSign: {
-    fontFamily: FontFamily.pixel,
+    fontFamily: FontFamily.handwriting,
     fontSize: 16,
     color: Colors.lightGrey,
   },
@@ -376,8 +380,8 @@ const styles = StyleSheet.create({
   },
   nextButtonWrapper: {
     position: 'absolute',
-    bottom: 40,
-    right: Spacing.xl,
+    bottom: 30,
+    right: 35,
   },
   instructionsBox: {
     position: 'absolute',
@@ -390,18 +394,10 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   instructionsText: {
-    fontFamily: FontFamily.novaCut,
+    fontFamily: FontFamily.pixel,
     fontSize: FontSize.md,
     color: Colors.offWhite,
     textAlign: 'center',
     lineHeight: FontSize.md * 1.5,
-  },
-  optionalHintText: {
-    fontFamily: FontFamily.novaCut,
-    fontSize: FontSize.md,
-    color: Colors.greenOutline,
-    textAlign: 'center',
-    marginTop: Spacing.sm,
-    marginRight: Spacing.xxl,
   },
 });
