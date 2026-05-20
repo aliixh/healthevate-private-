@@ -47,7 +47,7 @@ export default function ChooseDailyHabits() {
     const fallback = [
       { id: "one", name: "Write in Journal" },
       { id: "two", name: "8 Hours of Sleep" },
-      { id: "three", name: "10 mins of reading" },
+      { id: "three", name: "15 mins of reading" },
     ];
     return fallback.map((h, index) => ({
       id: h.id,
@@ -96,23 +96,6 @@ export default function ChooseDailyHabits() {
 
   useEffect(() => {
     void loadHabitListFromSupabase();
-    (async () => {
-      try {
-        const raw = await AsyncStorage.getItem("selectedHabitIds");
-        if (!raw) return;
-        const parsed = JSON.parse(raw);
-        if (!Array.isArray(parsed)) return;
-        const ids = parsed.filter((v) => typeof v === "string") as string[];
-        if (ids.length === 0) return;
-        setSelectedHabitSlots((prev) => {
-          const next = [...prev];
-          for (let i = 0; i < Math.min(totalSlots, ids.length); i++) next[i] = ids[i];
-          return next;
-        });
-      } catch {
-        // ignore
-      }
-    })();
   }, []);
 
   const toggleHabit = (index: number) => {

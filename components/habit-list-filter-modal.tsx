@@ -583,7 +583,7 @@ const styles = StyleSheet.create({
   },
   filterPopupWrap: {
     position: 'absolute',
-    top: 92,
+    top: 32,
     left: 86,
     right: 86,
     alignItems: 'center',

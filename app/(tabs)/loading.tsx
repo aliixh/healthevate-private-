@@ -11,26 +11,28 @@ export default function LoadingScreen() {
   const router = useRouter();
 
   React.useEffect(() => {
-    async function checkOnboarding() {
-      const value = await AsyncStorage.getItem('hasCompletedOnboarding');
-      setDestination(value === 'true' ? '/(tabs)/new_habit' : '/onboarding/gameIntro');
-    }
-    checkOnboarding();
-  }, []);
+  let cancelled = false;
 
-  React.useEffect(() => {
+  async function init() {
+    const value = await AsyncStorage.getItem('hasCompletedOnboarding');
+    const dest = value === 'true' ? '/(tabs)/new_habit' : '/onboarding/gameIntro';
+
     const interval = setInterval(() => {
       setProgress(prev => {
-        if (prev >= 1) {
+        const next = prev + 0.01;
+        if (next >= 1) {
           clearInterval(interval);
-          if (destination) router.replace(destination as any);
+          if (!cancelled) router.replace(dest as any);
           return 1;
         }
-        return prev + 0.01;
+        return next;
       });
     }, 30);
-    return () => clearInterval(interval);
-  }, [destination]);
+  }
+
+  void init();
+  return () => { cancelled = true; };
+}, []);
 
   return (
     <View style={styles.container}>

@@ -230,7 +230,7 @@ function ConfirmModal({ visible, title, body, note, buttons }: {
   if (!visible) return null;
   return (
     <Modal transparent animationType="fade" visible>
-      <View style={PopupStyles.overlay}>
+      /<View style={PopupStyles.overlay}>
         <View style={s.confirmBox}>
           <Text style={s.confirmTitle}>{title}</Text>
           {body ? <Text style={s.confirmBody}>{body}</Text> : null}
@@ -260,7 +260,6 @@ function PhotoModal({ visible, habitName, onCamera, onGallery, onSkip }: {
 }) {
   if (!visible) return null;
   return (
-    <Modal transparent animationType="fade" visible>
       <View style={PopupStyles.overlay}>
         <View style={s.photoBox}>
           <View style={s.photoNameRow}><Text style={s.photoName} numberOfLines={1}>{habitName}</Text></View>
@@ -272,7 +271,6 @@ function PhotoModal({ visible, habitName, onCamera, onGallery, onSkip }: {
           <TouchableOpacity style={s.photoItem} onPress={onSkip}><Text style={s.photoItemTxt}>skip photo</Text></TouchableOpacity>
         </View>
       </View>
-    </Modal>
   );
 }
 
@@ -558,17 +556,27 @@ export default function HabitsScreen({
 useEffect(() => {
   const loadHabits = async () => {
     try {
-      const saved = await AsyncStorage.getItem('selectedHabits');
-      if (saved) {
-        const parsed: Record<number, string> = JSON.parse(saved);
-        const loaded: Habit[] = Object.entries(parsed).map(([slot, name]) => ({
-          id: `slot-${slot}`,
-          label: name,
-          coins: parseInt(slot) < 3 ? 50 : null, // first 3 slots are main habits
-        }));
-        setHabits(loaded);
-        setSelId(loaded[0]?.id ?? '');
-      }
+      const raw = await AsyncStorage.getItem('selectedHabitIds');
+      if (!raw) return;
+      const ids: string[] = JSON.parse(raw);
+      if (!Array.isArray(ids) || ids.length === 0) return;
+
+      // Fetch habit details from Supabase to resolve names
+      const { getHabits } = await import('@/api/habits');
+      const data = await getHabits();
+      const rows = Array.isArray(data) ? data : [];
+
+      const loaded: Habit[] = ids.map((id, slot) => {
+        const match = rows.find((r: any) => String(r.id ?? r.habit_id) === id);
+        return {
+          id,
+          label: match?.name ?? id,
+          coins: slot < 3 ? 50 : null,
+        };
+      });
+
+      setHabits(loaded);
+      setSelId(loaded[0]?.id ?? '');
     } catch (err) {
       console.error('Error loading habits from storage:', err);
     }
@@ -877,9 +885,9 @@ const s = StyleSheet.create({
 
   editScreen:  { position:'absolute', top:0, left:0, right:0, bottom:0, backgroundColor:Colors.background, flexDirection:'row', zIndex:30 },
   editLeft:    { flex:1, minWidth:0, padding:Spacing.md, flexDirection:'column' },
-  editHeader:  { flexDirection:'row', alignItems:'center', gap:Spacing.sm, marginBottom:Spacing.sm },
+  editHeader:  { flexDirection:'row', alignItems:'center', gap:Spacing.sm, marginBottom:Spacing.sm, top:12},
   editTitle:   { fontFamily:FontFamily.pixelBold, fontSize:FontSize.xl, color:Colors.textGreen },
-  editListWrap:{ flex:1, minHeight:0 },
+  editListWrap:{ flex:1, minHeight:0},
   editScroll:  { flex:1 },
   editRow:     { flexDirection:'row', alignItems:'center', gap:Spacing.xs+2 },
   editPill:    { flex:1, backgroundColor:Colors.textbox, borderRadius:Radius.full, borderWidth:2.5, borderColor:Colors.greenOutline, paddingVertical:Spacing.xs+8, paddingHorizontal:Spacing.md, justifyContent:'center' },
